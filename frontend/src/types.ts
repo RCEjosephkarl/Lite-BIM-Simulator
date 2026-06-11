@@ -33,6 +33,17 @@ export interface BimElement {
   price_confidence: string; // 'high' | 'medium' | 'low' | ''
   price_source_name: string;
   price_source_url: string;
+  source: "generated" | "csv_import" | "csv_preview" | "vision_import" |
+    "vision_preview" | "manual_wall" | "manual_truss";
+  source_id: string;
+  editable: boolean;
+  confidence: number | null;
+  warnings: string[];
+  truss_id: string;
+  truss_label: string;
+  pitch_deg: number | null;
+  span_mm: number | null;
+  spacing_mm: number | null;
 }
 
 /** Stud material options (internal key, display name). */
@@ -136,3 +147,199 @@ export interface BimModel {
 }
 
 export type ColorMode = "function" | "material" | "realistic";
+
+export type SidebarSection =
+  "dashboard" | "specs" | "bom" | "pricing" | "imports" |
+  "wall" | "truss" | "settings";
+
+export interface DashboardSummary {
+  storeys: number;
+  roof_type: string;
+  wind_zone: string;
+  wind_speed: number | null;
+  snow_zone: string;
+  total_elements: number;
+  wall_frame_lineal_m: number;
+  roof_truss_lineal_m: number;
+  estimated_material_cost_usd: number;
+  warning_count: number;
+}
+
+export interface BomRow {
+  category: string;
+  element: string;
+  storey: number;
+  segment: string;
+  size: string;
+  grade: string;
+  treatment: string;
+  material: string;
+  plies: number;
+  stock_length_m: number;
+  qty: number;
+  total_length_m: number;
+  total_effective_length_m: number;
+  effective_length_m: number;
+  unit_price_usd_per_lm: number | null;
+  total_cost_usd: number;
+  estimated_cost_usd: number;
+  price_confidence: string;
+  price_source_name: string;
+  price_source_url: string;
+  nzs_ref: string;
+  notes: string;
+  pricing_notes: string;
+}
+
+export interface PricingRow {
+  material: string;
+  key: string;
+  category: string;
+  default_size: string;
+  usd_per_linear_metre: number;
+  confidence: string;
+  source_name: string;
+  source_date: string;
+  source_url: string;
+  notes: string;
+}
+
+export interface CsvPlanRow {
+  type: "wall" | "opening" | "truss";
+  valid?: boolean;
+  errors?: string[];
+  warnings?: string[];
+  _row?: number;
+  [key: string]: unknown;
+}
+
+export interface CsvValidationResult {
+  rows: CsvPlanRow[];
+  normalized_entities: CsvPlanRow[];
+  errors: { row: number; message: string }[];
+  warnings: { row: number; message: string }[];
+  summary: {
+    wall_count: number;
+    opening_count: number;
+    truss_count: number;
+    estimated_total_wall_length_m: number;
+    error_count: number;
+    warning_count: number;
+  };
+  can_preview: boolean;
+  file_name?: string;
+}
+
+export interface ImportBatch {
+  batch_id: string;
+  source_type: string;
+  file_name: string;
+  uploaded_at: string;
+  row_count: number;
+  accepted_count: number;
+  rejected_count: number;
+  warning_count: number;
+}
+
+export interface ManualOpening {
+  opening_id: string;
+  opening_type: "door" | "window" | "garage" | "custom";
+  start_offset_mm: number;
+  width_mm: number;
+  height_mm: number;
+  sill_height_mm: number;
+  head_height_mm: number | null;
+  lintel_size: string;
+  notes: string;
+}
+
+export interface ManualWallFrameInput {
+  input_id: string;
+  level: number;
+  segment_id: string;
+  segment_label: string;
+  start_x_mm: number;
+  start_z_mm: number;
+  end_x_mm: number;
+  end_z_mm: number;
+  wall_height_mm: number;
+  wall_thickness_mm: number;
+  stud_size: string;
+  stud_material: string;
+  stud_spacing_mm: number;
+  plies: number;
+  bottom_plate_size: string;
+  top_plate_size: string;
+  nog_count: number;
+  nog_spacing_mm: number | null;
+  treatment: string;
+  exterior: boolean;
+  load_bearing: boolean;
+  openings: ManualOpening[];
+}
+
+export interface TrussNode {
+  id: string;
+  x: number;
+  y: number;
+}
+
+export interface TrussMember {
+  start_node: string;
+  end_node: string;
+  element_type: string;
+  size: string;
+  material: string;
+}
+
+export interface ManualTrussInput {
+  input_id: string;
+  level: number;
+  truss_id: string;
+  truss_label: string;
+  span_mm: number;
+  pitch_deg: number;
+  spacing_mm: number;
+  quantity: number;
+  start_x_mm: number;
+  start_z_mm: number;
+  direction_deg: number;
+  top_chord_size: string;
+  top_chord_material: string;
+  bottom_chord_size: string;
+  bottom_chord_material: string;
+  web_size: string;
+  web_material: string;
+  overhang_mm: number;
+  heel_height_mm: number;
+  treatment: string;
+  truss_type: "common" | "girder" | "mono" | "scissor" | "attic" | "custom";
+  nodes: TrussNode[];
+  members: TrussMember[];
+}
+
+export interface PreviewResult {
+  elements: BimElement[];
+  types: ElementType[];
+  metadata: {
+    temporary: boolean;
+    member_count: number;
+    lineal_metres: number;
+    estimated_cost_usd: number;
+    warnings: string[];
+  };
+}
+
+export interface VisionProposal extends CsvPlanRow {
+  proposal_id?: string;
+  confidence?: number;
+  source_drawing?: string;
+  accepted?: boolean;
+}
+
+export interface VisionPlanAnalysisResult {
+  status: string;
+  proposals: VisionProposal[];
+  warnings: string[];
+  review_required?: boolean;
+}

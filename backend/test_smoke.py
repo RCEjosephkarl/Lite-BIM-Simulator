@@ -3,18 +3,42 @@
 from __future__ import annotations
 
 import csv
+import asyncio
 import io
 import json
 
+import httpx
 import pytest
-from fastapi.testclient import TestClient
 
 import db
 import materials
 from framing import CUSTOM_SPACING_NOTE, STUD_LIKE
 from server import app
 
-client = TestClient(app)
+
+class SyncAsgiClient:
+    """Small test client that avoids a cross-thread portal in restricted CI."""
+
+    def request(self, method: str, url: str, **kwargs) -> httpx.Response:
+        async def run() -> httpx.Response:
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(
+                transport=transport, base_url="http://test"
+            ) as client:
+                return await client.request(method, url, **kwargs)
+        return asyncio.run(run())
+
+    def get(self, url: str, **kwargs) -> httpx.Response:
+        return self.request("GET", url, **kwargs)
+
+    def post(self, url: str, **kwargs) -> httpx.Response:
+        return self.request("POST", url, **kwargs)
+
+    def delete(self, url: str, **kwargs) -> httpx.Response:
+        return self.request("DELETE", url, **kwargs)
+
+
+client = SyncAsgiClient()
 
 WALL_CODES = {"stud", "trimmer_stud", "jack_stud", "plate_bottom",
               "plate_top", "nog", "lintel", "sill_trimmer"}
@@ -192,3 +216,113 @@ def test_unit_price_handles_lintel_prefix_and_sed():
     sed, *_ = materials.unit_price_usd_per_lm("sg8", "2/290x45 (SED)")
     assert double == pytest.approx(2 * base, abs=0.01)
     assert sed > 0
+
+
+VALID_PLAN_CSV = """type,level,segment_id,label,start_x_mm,start_z_mm,end_x_mm,end_z_mm,height_mm,wall_segment_id,opening_id,opening_type,start_offset_mm,width_mm,sill_height_mm,head_height_mm
+wall,1,W-1,Imported wall,0,0,6000,0,2535,,,,,,,
+opening,1,,,,,,,1200,W-1,O-1,window,1800,1200,900,2100
+"""
+
+
+def test_csv_validation_accepts_valid_wall_and_opening():
+    response = client.post(
+        "/api/import/csv-plan/validate",
+        files={"file": ("plan.csv", VALID_PLAN_CSV, "text/csv")},
+        data={"units": "mm"},
+    )
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result["can_preview"]
+    assert result["summary"]["wall_count"] == 1
+    assert result["summary"]["opening_count"] == 1
+    assert result["errors"] == []
+
+
+def test_csv_validation_rejects_missing_required_columns():
+    response = client.post(
+        "/api/import/csv-plan/validate",
+        files={"file": ("bad.csv", "type,level\nwall,1\n", "text/csv")},
+        data={"units": "mm"},
+    )
+    assert response.status_code == 200
+    assert not response.json()["can_preview"]
+    assert any("missing required field" in error["message"]
+               for error in response.json()["errors"])
+
+
+def test_opening_validation_catches_opening_wider_than_wall():
+    raw = VALID_PLAN_CSV.replace("1800,1200,900", "5500,1200,900")
+    response = client.post(
+        "/api/import/csv-plan/validate",
+        files={"file": ("opening.csv", raw, "text/csv")},
+        data={"units": "mm"},
+    )
+    assert response.status_code == 200
+    assert any("does not fit" in error["message"]
+               for error in response.json()["errors"])
+
+
+def manual_wall_payload() -> dict:
+    return {
+        "level": 1, "segment_label": "Test manual wall",
+        "start_x_mm": 0, "start_z_mm": 0,
+        "end_x_mm": 3600, "end_z_mm": 0,
+        "wall_height_mm": 2535, "wall_thickness_mm": 90,
+        "stud_size": "90x45", "stud_material": "SG8",
+        "stud_spacing_mm": 600, "plies": 1,
+        "bottom_plate_size": "90x45", "top_plate_size": "90x45",
+        "nog_count": 1, "treatment": "H1.2", "openings": [],
+    }
+
+
+def test_manual_wall_preview_does_not_commit_then_commit_tracks_source():
+    get_model()
+    before = len(db.model_json()["elements"])
+    preview = client.post(
+        "/api/manual/wall-frame/preview", json=manual_wall_payload())
+    assert preview.status_code == 200, preview.text
+    assert preview.json()["metadata"]["member_count"] > 0
+    assert len(db.model_json()["elements"]) == before
+
+    committed = client.post(
+        "/api/manual/wall-frame/commit", json=manual_wall_payload())
+    assert committed.status_code == 200, committed.text
+    additions = [
+        element for element in committed.json()["model"]["elements"]
+        if element["source"] == "manual_wall"
+    ]
+    assert additions and all(element["editable"] for element in additions)
+
+
+def test_manual_truss_preview_returns_chord_and_web_elements():
+    response = client.post("/api/manual/truss/preview", json={
+        "level": 1, "truss_label": "T1", "span_mm": 9000,
+        "pitch_deg": 25, "spacing_mm": 900, "quantity": 2,
+        "start_x_mm": 5000, "start_z_mm": 5000, "direction_deg": 0,
+        "top_chord_size": "140x45", "top_chord_material": "SG8",
+        "bottom_chord_size": "90x45", "bottom_chord_material": "SG8",
+        "web_size": "90x45", "web_material": "SG8",
+        "overhang_mm": 450, "heel_height_mm": 100,
+        "treatment": "H1.2", "truss_type": "common",
+        "nodes": [], "members": [],
+    })
+    assert response.status_code == 200, response.text
+    codes = {element["type_code"] for element in response.json()["elements"]}
+    assert "truss_top_chord" in codes
+    assert "truss_bottom_chord" in codes
+    assert "truss_web" in codes
+
+
+def test_bom_json_and_ml_status_are_available_without_ml_dependencies():
+    get_model()
+    bom = client.get("/api/bom.json")
+    assert bom.status_code == 200
+    assert bom.json()["rows"]
+    status = client.get("/api/ml/status")
+    assert status.status_code == 200
+    assert "model_available" in status.json()
+
+    analysis = client.post("/api/import/vision-plan/analyze")
+    assert analysis.status_code == 200
+    assert analysis.json()["proposals"] == []
+    assert analysis.json()["warnings"]

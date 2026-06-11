@@ -280,3 +280,41 @@ designs are shareable.
   90x45) are cross-section extrapolations — see `pricing_notes`.
 - Prices are point-in-time retail snapshots; refresh `materials.py`
   before relying on totals.
+
+# Dashboard, Imports and Manual Framing - v2.0 (2026-06-11)
+
+## Added vertical slices
+
+- Hover-expand, keyboard-accessible left sidebar with persisted pin state.
+- Dashboard summary, grouped BOM table, pricing provenance and session price
+  overrides.
+- Structured mixed-row CSV validation, editable review, temporary preview and
+  append/replace commit modes.
+- Manual wall-frame and truss generators with preview-before-commit,
+  localStorage drafts, repeated/custom trusses, pricing and warnings.
+- Element source/source-id/editability/confidence metadata and import batches.
+- Project reset and regeneration with manual/import preservation options.
+- Optional Keras 3 adapter, ML status, image/manifest analysis boundary,
+  postprocessing contract and experimental training-data skeleton.
+
+## Persistence and compatibility
+
+The generated sample remains the default `/api/model` behavior. SQLite now
+stores source-tracked additions beside generated members. Parameter
+regeneration preserves committed manual/imported members by default, while
+project reset restores only the sample geometry. Existing `/api/model` and
+`/api/bom.csv` endpoints remain available.
+
+## Verification
+
+- Backend smoke suite: CSV validity and required fields, opening bounds,
+  manual wall preview/commit, truss chord/web generation, source tracking,
+  BOM JSON, legacy model/BOM behavior, and ML-unavailable status.
+- Frontend TypeScript and Vite production build.
+
+## Engineering disclaimer
+
+The dashboard remains an education, early-design and estimating tool. AI plan
+extraction is experimental and review-only. Imported/manual geometry must be
+checked by a qualified designer or engineer, and NZS 3604 or specific
+engineering design governs construction decisions.

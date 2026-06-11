@@ -173,6 +173,12 @@ ELEMENT_TYPES = {
     "fascia":        ("Fascia",             "roof",    "cl. 10.2",    "#0ea5e9"),
     "post":          ("Verandah post",      "outdoor", POST_REF,      "#92400e"),
     "beam":          ("Verandah beam",      "outdoor", PORCH_BEAM_REF, "#7c3aed"),
+    "truss_top_chord": ("Truss top chord", "roof", "specific design / supplier", "#65a30d"),
+    "truss_bottom_chord": ("Truss bottom chord", "roof", "specific design / supplier", "#15803d"),
+    "truss_web":     ("Truss web member", "roof", "specific design / supplier", "#4ade80"),
+    "truss_king_post": ("Truss king post", "roof", "specific design / supplier", "#22c55e"),
+    "truss_queen_post": ("Truss queen post", "roof", "specific design / supplier", "#86efac"),
+    "truss_girder":  ("Girder truss member", "roof", "specific design / supplier", "#166534"),
     "slab":          ("Concrete slab",      "concrete", "NZS 3604 cl. 7.5 (slab-on-ground)", "#9ca3af"),
 }
 

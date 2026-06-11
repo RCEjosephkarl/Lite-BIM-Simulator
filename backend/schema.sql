@@ -5,6 +5,7 @@ DROP VIEW IF EXISTS bom;
 DROP TABLE IF EXISTS elements;
 DROP TABLE IF EXISTS element_types;
 DROP TABLE IF EXISTS model_meta;
+DROP TABLE IF EXISTS import_batches;
 
 -- Catalogue of element functions (timber + non-timber visual elements).
 CREATE TABLE element_types (
@@ -43,14 +44,37 @@ CREATE TABLE elements (
     unit_price_usd_per_lm REAL,              -- estimating data, NULL = unpriced
     price_confidence   TEXT DEFAULT '',      -- 'high' | 'medium' | 'low'
     price_source_name  TEXT DEFAULT '',
-    price_source_url   TEXT DEFAULT ''
+    price_source_url   TEXT DEFAULT '',
+    source             TEXT NOT NULL DEFAULT 'generated',
+    source_id          TEXT NOT NULL DEFAULT '',
+    editable           INTEGER NOT NULL DEFAULT 0,
+    confidence         REAL,
+    warnings           TEXT NOT NULL DEFAULT '[]',
+    truss_id           TEXT NOT NULL DEFAULT '',
+    truss_label        TEXT NOT NULL DEFAULT '',
+    pitch_deg          REAL,
+    span_mm            REAL,
+    spacing_mm         REAL
 );
 
 CREATE INDEX idx_elements_type ON elements(type_code);
+CREATE INDEX idx_elements_source ON elements(source);
+CREATE INDEX idx_elements_source_id ON elements(source_id);
 
 CREATE TABLE model_meta (
     key   TEXT PRIMARY KEY,
     value TEXT NOT NULL
+);
+
+CREATE TABLE import_batches (
+    batch_id       TEXT PRIMARY KEY,
+    source_type    TEXT NOT NULL,
+    file_name      TEXT NOT NULL DEFAULT '',
+    uploaded_at    TEXT NOT NULL,
+    row_count      INTEGER NOT NULL DEFAULT 0,
+    accepted_count INTEGER NOT NULL DEFAULT 0,
+    rejected_count INTEGER NOT NULL DEFAULT 0,
+    warning_count  INTEGER NOT NULL DEFAULT 0
 );
 
 -- Bill of materials: TIMBER ONLY (concrete excluded), grouped by function,
@@ -65,6 +89,8 @@ WITH pieces AS (
     SELECT
         t.category,
         t.name              AS element,
+        e.storey,
+        e.segment_id        AS segment,
         CASE WHEN e.plies > 1 AND instr(e.size, '/') = 0
              THEN e.plies || '/' || e.size
              ELSE e.size END AS size,
@@ -86,6 +112,8 @@ WITH pieces AS (
 SELECT
     category,
     element,
+    storey,
+    segment,
     size,
     grade,
     treatment,
@@ -106,7 +134,7 @@ SELECT
          THEN 'over 6.0 m — splice or special order'
          ELSE '' END                     AS notes
 FROM pieces
-GROUP BY category, element, size, grade, treatment, material, plies,
+GROUP BY category, element, storey, segment, size, grade, treatment, material, plies,
          unit_price_usd_per_lm, price_confidence, price_source_name,
          price_source_url, stock_mm, nzs_ref
 ORDER BY CASE category

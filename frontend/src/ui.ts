@@ -12,6 +12,7 @@ export interface UiCallbacks {
   onParams(patch: Partial<ModelParams>): void;
   onColorMode(mode: ColorMode): void;
   onCategory(category: string, visible: boolean): void;
+  onSource(source: string): void;
   onAutoRotate(on: boolean): void;
   onExport(): void;
 }
@@ -60,13 +61,14 @@ export class Panel {
 
   private build(): void {
     this.root.innerHTML = `
-      <h1>Timber<span>BIM</span> Lite</h1>
-      <p class="sub">Light timber-framed residential · NZS 3604:2011</p>
-
       <section>
         <h2>View</h2>
         <label class="layer"><input type="checkbox" id="autorotate">
           Auto-rotate model</label>
+        <div class="field">
+          <label for="source-filter">Element source</label>
+          <select id="source-filter"><option value="">All sources</option></select>
+        </div>
       </section>
 
       <section>
@@ -178,7 +180,7 @@ export class Panel {
         <div id="info" class="info">Click a member in the 3D view.</div>
       </section>
 
-      <button id="export" class="export">⬇ Export BOM (CSV) — timber only</button>
+      <button id="export" class="export">Export BOM CSV - timber only</button>
       <p class="stats" id="stats"></p>
       <p class="hint" id="disclaimer"></p>
     `;
@@ -188,6 +190,8 @@ export class Panel {
 
     this.q("#autorotate").addEventListener("change", () =>
       this.cb.onAutoRotate(this.q<HTMLInputElement>("#autorotate").checked));
+    this.q("#source-filter").addEventListener("change", () =>
+      this.cb.onSource(this.q<HTMLSelectElement>("#source-filter").value));
 
     this.q("#storeys").addEventListener("click", (e) => {
       const b = (e.target as HTMLElement).closest("button");
@@ -464,8 +468,14 @@ export class Panel {
       `Studs ${studs} crs — wind: ${wind} · ` +
       `Rafters @ ${m.rafter_spacing_mm} crs — snow: ${m.snow_zone}`;
     this.q("#warnings").innerHTML =
-      m.warnings.map((w) => `⚠ ${w}`).join("<br>");
+      m.warnings.map((w) => `Warning: ${w}`).join("<br>");
     this.q("#disclaimer").textContent = m.disclaimer;
+    const source = this.q<HTMLSelectElement>("#source-filter");
+    const selected = source.value;
+    const sources = [...new Set(model.elements.map((element) => element.source))];
+    source.innerHTML = `<option value="">All sources</option>` +
+      sources.map((value) => `<option value="${value}">${value}</option>`).join("");
+    if (sources.includes(selected as BimElement["source"])) source.value = selected;
   }
 
   private renderLayers(): void {
@@ -518,6 +528,10 @@ export class Panel {
         ? `${el.stud_spacing_mm} mm crs` : "—"],
       ["Segment", el.segment_id
         ? `${el.segment_id} · ${el.segment_label}` : "—"],
+      ["Truss", el.truss_id ? `${el.truss_id} · ${el.truss_label}` : "—"],
+      ["Source", `${el.source}${el.source_id ? ` · ${el.source_id}` : ""}`],
+      ["Editable", el.editable ? "Yes" : "No"],
+      ["Confidence", el.confidence === null ? "—" : el.confidence.toFixed(2)],
       ["Length", `${(el.length_mm / 1000).toFixed(2)} m`],
       ["Storey", String(el.storey)],
       ["Unit price", price !== null ? `US$${price.toFixed(2)}/lm` : "—"],
@@ -533,6 +547,8 @@ export class Panel {
       rows.map(([k, v]) => `<div class="row"><span>${k}</span><b>${v}</b></div>`)
         .join("") +
       source +
-      (el.note ? `<div class="warn">⚠ ${el.note}</div>` : "");
+      (el.warnings?.length
+        ? `<div class="warn">${el.warnings.join("<br>")}</div>` : "") +
+      (el.note ? `<div class="warn">${el.note}</div>` : "");
   }
 }

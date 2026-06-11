@@ -1,9 +1,10 @@
-import type { BimModel, ModelParams } from "./types";
+import type {
+  BimModel, BomRow, CsvPlanRow, CsvValidationResult, DashboardSummary,
+  ImportBatch,
+  ManualTrussInput, ManualWallFrameInput, ModelParams, PreviewResult,
+  PricingRow, VisionPlanAnalysisResult, VisionProposal,
+} from "./types";
 
-/**
- * Build the /api/model query string. Defaults and empty overrides are
- * omitted so plain/legacy URLs stay clean and shareable.
- */
 export function paramsToQuery(p: ModelParams): URLSearchParams {
   const q = new URLSearchParams();
   if (p.storeys !== 1) q.set("storeys", String(p.storeys));
@@ -19,26 +20,113 @@ export function paramsToQuery(p: ModelParams): URLSearchParams {
   if (p.wall_plies_overall !== null && p.wall_plies_overall !== 1)
     q.set("wall_plies_overall", String(p.wall_plies_overall));
   const dicts = [
-    "stud_material_levels",
-    "stud_spacing_levels",
-    "wall_plies_levels",
-    "stud_material_segments",
-    "stud_spacing_segments",
-    "wall_plies_segments",
+    "stud_material_levels", "stud_spacing_levels", "wall_plies_levels",
+    "stud_material_segments", "stud_spacing_segments", "wall_plies_segments",
   ] as const;
-  for (const k of dicts) {
-    if (Object.keys(p[k]).length) q.set(k, JSON.stringify(p[k]));
-  }
+  for (const key of dicts)
+    if (Object.keys(p[key]).length) q.set(key, JSON.stringify(p[key]));
   return q;
 }
 
-export async function fetchModel(params: ModelParams): Promise<BimModel> {
-  const res = await fetch(`/api/model?${paramsToQuery(params)}`);
-  if (!res.ok) throw new Error(`model fetch failed: ${res.status}`);
-  return res.json();
+async function json<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, init);
+  if (!response.ok) {
+    let detail = `${response.status} ${response.statusText}`;
+    try {
+      const body = await response.json();
+      detail = typeof body.detail === "string"
+        ? body.detail : body.detail?.message ?? body.message ?? detail;
+    } catch { /* keep HTTP message */ }
+    throw new Error(detail);
+  }
+  return response.json();
 }
 
-/** Trigger a CSV download of the timber bill of materials. */
+function post<T>(url: string, body: unknown): Promise<T> {
+  return json<T>(url, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export function fetchModel(params: ModelParams): Promise<BimModel> {
+  return json(`/api/model?${paramsToQuery(params)}`);
+}
+
 export function downloadBom(): void {
   window.location.href = "/api/bom.csv";
 }
+
+export const getDashboardSummary = () => json<DashboardSummary>("/api/dashboard");
+export const getBomJson = () => json<{ rows: BomRow[]; disclaimer: string }>(
+  "/api/bom.json");
+export const getPricing = () => json<{ rows: PricingRow[]; disclaimer: string }>(
+  "/api/pricing");
+export const getWarnings = () => json<{
+  warnings: { message: string; source?: string; source_id?: string }[];
+  count: number;
+}>("/api/warnings");
+export const getMlStatus = () => json<Record<string, unknown>>("/api/ml/status");
+
+export async function uploadCsvPlanValidate(
+  file: File, units: "mm" | "metres" | "feet_inches",
+): Promise<CsvValidationResult> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("units", units);
+  return json("/api/import/csv-plan/validate", { method: "POST", body: form });
+}
+
+export const uploadCsvPlanPreview = (
+  rows: CsvPlanRow[], fileName = "",
+) => post<PreviewResult & { validation: CsvValidationResult }>(
+  "/api/import/csv-plan/preview", { rows, units: "mm", file_name: fileName });
+
+export const commitCsvPlan = (
+  rows: CsvPlanRow[], mode: string, fileName = "",
+) => post<{ batch_id: string; model: BimModel }>(
+  "/api/import/csv-plan/commit",
+  { rows, units: "mm", file_name: fileName, mode });
+
+export async function analyzeVisionPlan(
+  files: File[], manifest?: File,
+): Promise<VisionPlanAnalysisResult> {
+  const form = new FormData();
+  files.forEach((file) => form.append("files", file));
+  if (manifest) form.append("manifest", manifest);
+  return json("/api/import/vision-plan/analyze", {
+    method: "POST", body: form,
+  });
+}
+
+export const commitVisionPlan = (
+  proposals: VisionProposal[], mode: string, fileName = "",
+) => post<{ batch_id: string; model: BimModel }>(
+  "/api/import/vision-plan/commit",
+  { proposals, mode, file_name: fileName });
+
+export const previewManualWallFrame = (input: ManualWallFrameInput) =>
+  post<PreviewResult>("/api/manual/wall-frame/preview", input);
+export const commitManualWallFrame = (input: ManualWallFrameInput) =>
+  post<{ source_id: string; model: BimModel }>(
+    "/api/manual/wall-frame/commit", input);
+export const previewManualTruss = (input: ManualTrussInput) =>
+  post<PreviewResult>("/api/manual/truss/preview", input);
+export const commitManualTruss = (input: ManualTrussInput) =>
+  post<{ source_id: string; model: BimModel }>(
+    "/api/manual/truss/commit", input);
+
+export const resetProject = () => post<BimModel>("/api/project/reset", {});
+export const getImportBatches = () => json<{ batches: ImportBatch[] }>(
+  "/api/import/batches");
+export const deleteImportBatch = (batchId: string) =>
+  json<{ model: BimModel }>(`/api/import/batches/${encodeURIComponent(batchId)}`, {
+    method: "DELETE",
+  });
+export const regenerateProject = (
+  preserveManual = true, preserveImports = true,
+) => post<BimModel>("/api/project/regenerate", {
+  preserve_manual: preserveManual,
+  preserve_imports: preserveImports,
+  replace_geometry: false,
+});

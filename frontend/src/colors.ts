@@ -21,6 +21,8 @@ export function elementColor(
   type: ElementType,
   mode: ColorMode,
 ): THREE.Color {
+  if (el.source === "csv_preview" || el.source === "vision_preview")
+    return new THREE.Color("#d946ef");
   if (mode === "function") {
     return new THREE.Color(type.color_hex);
   }

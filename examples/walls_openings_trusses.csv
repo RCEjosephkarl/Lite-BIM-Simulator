@@ -1,0 +1,6 @@
+type,level,segment_id,label,start_x_mm,start_z_mm,end_x_mm,end_z_mm,height_mm,wall_thickness_mm,stud_size,stud_material,stud_spacing_mm,plies,treatment,load_bearing,exterior,wall_segment_id,opening_id,opening_type,start_offset_mm,width_mm,sill_height_mm,head_height_mm,truss_id,span_mm,pitch_deg,spacing_mm,quantity,direction_deg,truss_type,material,overhang_mm,heel_height_mm,notes
+wall,1,CSV-W-001,South exterior wall,0,0,9000,0,2535,90,90x45,SG8,600,1,H1.2,true,true,,,,,,,,,,,,,,,,,,Imported wall example
+opening,1,,,,,,,1200,,,,,,,,,CSV-W-001,CSV-O-001,door,1200,900,0,2100,,,,,,,,,,,Entry door
+opening,1,,,,,,,1200,,,,,,,,,CSV-W-001,CSV-O-002,window,4200,1800,900,2100,,,,,,,,,,,Living room window
+wall,1,CSV-W-002,East exterior wall,9000,0,9000,7000,2535,90,90x45,SG8,600,1,H1.2,true,true,,,,,,,,,,,,,,,,,,Imported wall example
+truss,1,,Roof truss layout,4500,3500,,,,,,,,,,,,,,,,,,,CSV-T-001,9000,25,900,8,0,common,SG8,450,100,Review with truss supplier

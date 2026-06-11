@@ -1,0 +1,8 @@
+start_node,end_node,element_type,size,material
+L,C,top_chord,140x45,SG8
+C,R,top_chord,140x45,SG8
+L,R,bottom_chord,90x45,SG8
+L,Q2,web,90x45,SG8
+R,Q1,web,90x45,SG8
+Q1,C,queen_post,90x45,SG8
+Q2,C,queen_post,90x45,SG8

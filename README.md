@@ -26,6 +26,10 @@ and covered porch).
 | 12 | **Wall-frame plies by scope** | 1–6 plies for `frame_wall()` members only (studs/plates/nogs/trimmers/lintels/sills). Stud visuals widen to plies × 45 mm; BOM lineal metres and costs multiply by plies; sizes display as `2/90x45` |
 | 13 | **Frame segment identity** | Deterministic IDs (`G-EXT-001`, `L2-INT-003`…) on every wall element; `meta.frame_segments` lists each segment with length, openings and its effective material/spacing/plies |
 | 14 | **USD cost estimating** | Sourced material catalogue (`backend/materials.py`) with NZ retail prices converted to USD/lineal-metre (provenance, FX rate + date, confidence levels); costs in the BOM CSV, `/api/cost-summary`, the stats line and the selected-element panel |
+| 15 | **Hover / pin BIM dashboard** | Left icon rail expands on hover and can be pinned. Sections cover Dashboard, Building Specs, BOM, Pricing, Imports, Manual Walls, Manual Trusses, and Settings / Warnings |
+| 16 | **Structured CSV plan import** | Mixed wall/opening/truss rows, mm/metres/feet-inches normalization, editable validation review, temporary preview, then append/replace commit |
+| 17 | **Manual framing inputs** | Preview-before-commit wall and truss forms, openings, repeated/custom trusses, local drafts, cost/member summaries, and source tracking |
+| 18 | **Optional AI adapter** | Keras 3 / KerasHub-KerasCV boundary, status endpoint, image/manifest review workflow, and no-model behavior that never invents geometry |
 
 **Override precedence:** `segment > level > overall > NZS 3604 default`.
 Overrides are estimating/design-study options — they never silently replace
@@ -63,6 +67,59 @@ Backend tests:
 cd backend && python -m pytest test_smoke.py -q
 ```
 
+The dashboard is collapsed by default. Hover the left rail to open it, or use
+**Pin sidebar** to resize the 3D workspace and keep it open. Building Specs
+also includes an element source filter for generated, imported, manual, and
+temporary preview members.
+
+## CSV plan import
+
+Use **Imports / Drawing Plans -> Structured CSV**. A combined file can mix
+`wall`, `opening`, and `truss` rows. See
+[`examples/walls_openings_trusses.csv`](examples/walls_openings_trusses.csv).
+
+```text
+wall: type,level,segment_id,label,start_x_mm,start_z_mm,end_x_mm,end_z_mm,height_mm
+opening: type,level,wall_segment_id,opening_id,opening_type,
+         start_offset_mm OR center_offset_mm,width_mm,height_mm
+truss: type,level,truss_id,label,span_mm,pitch_deg,spacing_mm,quantity,
+       start_x_mm,start_z_mm,direction_deg
+```
+
+Validation never modifies the model. Invalid rows stay visible and editable.
+Preview members are temporary and magenta. Commit can append to the sample,
+replace its geometry, or start a model from the CSV.
+
+## Manual inputs
+
+**Manual Wall Frame Input** supports coordinates, dimensions, material, stud
+spacing, plies, plates, nogs, treatment, and door/window openings. **Manual
+Truss Input** supports common, girder, mono, scissor, attic and custom layouts,
+repeated quantities, materials, overhang and heel height. Custom examples are
+in [`examples/custom_truss_nodes.csv`](examples/custom_truss_nodes.csv) and
+[`examples/custom_truss_members.csv`](examples/custom_truss_members.csv).
+
+Both workflows require a successful preview before commit. Drafts and sidebar
+pin state are stored in browser `localStorage`.
+
+## Optional AI plan reading
+
+CSV is structured geometry, not an image. The experimental vision workflow is
+for raster plan pages (PNG, JPG/JPEG, WEBP) or a CSV manifest referencing those
+images. See [`examples/plan_manifest.csv`](examples/plan_manifest.csv).
+
+```bash
+pip install -r backend/requirements-ml.txt
+export KERAS_BACKEND=tensorflow
+export TIMBERBIM_PLAN_MODEL=/path/to/reviewed-detector.keras
+```
+
+Without trained weights, `GET /api/ml/status` reports
+`model_available=false`, and analysis returns no geometry. Training guidance
+and the experimental script are in
+[`backend/ml/README.md`](backend/ml/README.md). AI proposals always require
+review and explicit acceptance before commit.
+
 Frontend development with hot reload (proxies `/api` to :8000):
 
 ```bash
@@ -77,6 +134,18 @@ cd frontend && npm run dev
 | `GET /api/bom.csv` | Bill of materials (timber only) from the SQL `bom` view. Columns: category, element, size, grade, treatment, **material, plies**, stock_length_m, qty, total_length_m, **total_effective_length_m** (× plies), **unit_price_usd_per_lm, total_cost_usd, price_confidence, price_source_name, price_source_url**, nzs_3604_2011_ref, notes, **pricing_notes** |
 | `GET /api/materials` | Stud material catalogue: sizes, USD/lm estimating prices with source name/URL/date, original currency price/unit, FX rate + date, confidence (high/medium/low) and assumptions |
 | `GET /api/cost-summary` | Estimated material cost totals (USD) for the current model: grand total and breakdowns by material, storey, frame segment and element |
+| `GET /api/dashboard` | Storeys, zones, element/length/cost/warning summary |
+| `GET /api/bom.json` | Grouped in-app BOM rows |
+| `GET /api/pricing` | Material price rows and source metadata |
+| `GET /api/warnings` | Consolidated model/import/manual/pricing warnings |
+| `POST /api/import/csv-plan/validate` | Multipart CSV validation without model mutation |
+| `POST /api/import/csv-plan/preview`, `/commit` | Preview or commit reviewed CSV geometry |
+| `POST /api/manual/wall-frame/preview`, `/commit` | Preview or commit a manual wall frame |
+| `POST /api/manual/truss/preview`, `/commit` | Preview or commit a manual truss layout |
+| `GET /api/ml/status` | Optional Keras adapter and model-weight status |
+| `POST /api/import/vision-plan/analyze`, `/commit` | Review-first experimental vision workflow |
+| `GET /api/import/batches` | Import/manual batch history |
+| `POST /api/project/reset`, `/regenerate` | Clear additions or regenerate while preserving selected sources |
 
 ## How it works
 
@@ -120,7 +189,7 @@ generation logic and verification results).
 
 ## Disclaimer
 
-Indicative model for estimating and education. Member sizes/spacings are
+This app is for education, early design, and estimating. Member sizes/spacings are
 simplified readings of NZS 3604:2011 common cases — verify all members
 against the standard (or specific engineering design) before construction.
 NZS 3604 covers buildings within a 10 m height limit; the 3-storey option,
@@ -133,3 +202,7 @@ sawn timber — substituting SG10, glulam or LVL products, changing stud
 centres or adding plies requires verification against NZS 3604:2011 or
 specific engineering design. Selecting a product here is **not**
 engineering approval.
+
+AI plan extraction is approximate and must be reviewed. Imported and manual
+geometry must be checked by a qualified designer or engineer. NZS 3604 or
+specific engineering design governs real construction decisions.
