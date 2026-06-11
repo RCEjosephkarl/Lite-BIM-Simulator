@@ -1,7 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments and local Python selection
+.venv/
+venv/
+env/
+.python-version
+
+# Backend runtime data
+backend/model.db
+backend/model.db-*
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+
+# Node / Vite
 node_modules/
 dist/
-__pycache__/
-*.pyc
-backend/model.db
-.venv/
-.python-version
+.vite/
+*.tsbuildinfo
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Generated project exports
+*-BIM.txt
+timber_bom_nzs3604.csv

@@ -13,10 +13,22 @@ perpendicular axis (+ = axis rises).
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 
 import geometry as g
+import materials
 import nzs3604 as nz
+
+CUSTOM_SPACING_NOTE = "custom spacing — verify by design/NZS 3604"
+
+# stud-like verticals that take the stud material override
+STUD_LIKE = {"stud", "trimmer_stud", "jack_stud"}
+
+
+def _safe(s: str) -> str:
+    """Sanitise user-supplied strings echoed into warnings."""
+    return re.sub(r"[<>&]", "", s)[:32]
 
 
 @dataclass
@@ -28,8 +40,90 @@ class ModelConfig:
     wind_speed: float | None = None  # m/s; when set, derives the wind zone
     snow_zone: str = "N0"          # Section 15 zone N0..N5
     gable_spacing: int = nz.GABLE_STUD_DEFAULT_SPACING  # gable-end stud crs, mm
+    # wall stud design overrides; precedence segment > level > overall > default
+    stud_material_overall: str | None = None        # material key, e.g. 'sg10'
+    stud_spacing_overall: int | None = None         # mm, 300..1200
+    wall_plies_overall: int | None = None           # 1..6
+    stud_material_levels: dict[int, str] = field(default_factory=dict)
+    stud_spacing_levels: dict[int, int] = field(default_factory=dict)
+    wall_plies_levels: dict[int, int] = field(default_factory=dict)
+    stud_material_segments: dict[str, str] = field(default_factory=dict)
+    stud_spacing_segments: dict[str, int] = field(default_factory=dict)
+    wall_plies_segments: dict[str, int] = field(default_factory=dict)
+    # populated by normalised(); a dataclass field so it survives asdict()
+    override_warnings: list[str] = field(default_factory=list)
 
     def normalised(self) -> "ModelConfig":
+        warns = list(self.override_warnings)
+
+        def material(v: object, label: str) -> str | None:
+            if v is None:
+                return None
+            key = materials.normalise_material_key(str(v))
+            if key is None:
+                warns.append(f"unknown stud material '{_safe(str(v))}' "
+                             f"in {label} — ignored")
+            return key
+
+        def spacing(v: object, label: str) -> int | None:
+            if v is None:
+                return None
+            try:
+                n = int(v)  # type: ignore[arg-type]
+            except (TypeError, ValueError):
+                warns.append(f"invalid stud spacing '{_safe(str(v))}' "
+                             f"in {label} — ignored")
+                return None
+            clamped = max(300, min(1200, n))
+            if clamped != n:
+                warns.append(f"stud spacing {n} mm in {label} "
+                             f"clamped to {clamped} mm")
+            return clamped
+
+        def plies(v: object, label: str) -> int | None:
+            if v is None:
+                return None
+            try:
+                n = int(v)  # type: ignore[arg-type]
+            except (TypeError, ValueError):
+                warns.append(f"invalid wall plies '{_safe(str(v))}' "
+                             f"in {label} — ignored")
+                return None
+            clamped = max(1, min(6, n))
+            if clamped != n:
+                warns.append(f"wall plies {n} in {label} "
+                             f"clamped to {clamped}")
+            return clamped
+
+        def by_level(d: dict, clean, label: str) -> dict:
+            out = {}
+            for k, v in (d or {}).items():
+                try:
+                    lvl = int(k)
+                except (TypeError, ValueError):
+                    warns.append(f"invalid level '{_safe(str(k))}' "
+                                 f"in {label} — ignored")
+                    continue
+                if not 1 <= lvl <= 3:
+                    warns.append(f"level {lvl} in {label} "
+                                 f"outside 1-3 — ignored")
+                    continue
+                cv = clean(v, f"{label}[{lvl}]")
+                if cv is not None:
+                    out[lvl] = cv
+            return out
+
+        def by_segment(d: dict, clean, label: str) -> dict:
+            out = {}
+            for k, v in (d or {}).items():
+                seg = str(k).strip()
+                if not seg:
+                    continue
+                cv = clean(v, f"{label}[{_safe(seg)}]")
+                if cv is not None:
+                    out[seg] = cv
+            return out
+
         c = ModelConfig(
             storeys=max(1, min(3, int(self.storeys))),
             roof=self.roof if self.roof in ("gable", "hip") else "gable",
@@ -37,12 +131,65 @@ class ModelConfig:
             wind_speed=self.wind_speed,
             snow_zone=self.snow_zone if self.snow_zone in nz.SNOW_ZONES else "N0",
             gable_spacing=max(300, min(1200, int(self.gable_spacing))),
+            stud_material_overall=material(
+                self.stud_material_overall, "stud_material_overall"),
+            stud_spacing_overall=spacing(
+                self.stud_spacing_overall, "stud_spacing_overall"),
+            wall_plies_overall=plies(
+                self.wall_plies_overall, "wall_plies_overall"),
+            stud_material_levels=by_level(
+                self.stud_material_levels, material, "stud_material_levels"),
+            stud_spacing_levels=by_level(
+                self.stud_spacing_levels, spacing, "stud_spacing_levels"),
+            wall_plies_levels=by_level(
+                self.wall_plies_levels, plies, "wall_plies_levels"),
+            stud_material_segments=by_segment(
+                self.stud_material_segments, material,
+                "stud_material_segments"),
+            stud_spacing_segments=by_segment(
+                self.stud_spacing_segments, spacing,
+                "stud_spacing_segments"),
+            wall_plies_segments=by_segment(
+                self.wall_plies_segments, plies, "wall_plies_segments"),
         )
         if c.wind_speed is not None:
             c.wind_zone = nz.wind_zone_for_speed(c.wind_speed)
         elif c.wind_zone not in nz.WIND_ZONES:
             c.wind_zone = "medium"
+        c.override_warnings = warns
         return c
+
+    def effective_stud_material(self, storey: int,
+                                segment_id: str | None = None) -> str:
+        """Material key for stud-like members (segment > level > overall)."""
+        if segment_id and segment_id in self.stud_material_segments:
+            return self.stud_material_segments[segment_id]
+        if storey in self.stud_material_levels:
+            return self.stud_material_levels[storey]
+        return self.stud_material_overall or "sg8"
+
+    def effective_stud_spacing(self, storey: int, segment_id: str | None,
+                               nzs_default: int) -> int:
+        if segment_id and segment_id in self.stud_spacing_segments:
+            return self.stud_spacing_segments[segment_id]
+        if storey in self.stud_spacing_levels:
+            return self.stud_spacing_levels[storey]
+        if self.stud_spacing_overall is not None:
+            return self.stud_spacing_overall
+        return nzs_default
+
+    def effective_wall_plies(self, storey: int,
+                             segment_id: str | None = None) -> int:
+        if segment_id and segment_id in self.wall_plies_segments:
+            return self.wall_plies_segments[segment_id]
+        if storey in self.wall_plies_levels:
+            return self.wall_plies_levels[storey]
+        return self.wall_plies_overall or 1
+
+    def has_spacing_override(self) -> bool:
+        return (self.stud_spacing_overall is not None
+                or bool(self.stud_spacing_levels)
+                or bool(self.stud_spacing_segments))
 
     def warnings(self) -> list[str]:
         out = []
@@ -69,7 +216,8 @@ def _el(els: list, type_code: str, storey: int, size: str, length: float,
                     treatment=treatment, length_mm=round(length, 1),
                     w_mm=w, h_mm=h, cx=round(cx, 1), cy=round(cy, 1),
                     cz=round(cz, 1), yaw=round(yaw, 5), pitch=round(pitch, 5),
-                    note=note))
+                    note=note, material=grade, plies=1, segment_id="",
+                    segment_label="", stud_spacing_mm=None))
 
 
 # ---------------------------------------------------------------------------
@@ -77,11 +225,15 @@ def _el(els: list, type_code: str, storey: int, size: str, length: float,
 # ---------------------------------------------------------------------------
 
 def frame_wall(els: list, wall: g.Wall, storey: int, spacing: int,
-               z: float, note: str = "") -> None:
+               z: float, note: str = "", *, material: str = "SG8",
+               plies: int = 1, segment_id: str = "",
+               segment_label: str = "") -> None:
     dx, dy = wall.x2 - wall.x1, wall.y2 - wall.y1
     length = math.hypot(dx, dy)
     if length < 100:
         return
+    start = len(els)
+    vert_breadth = 45.0 * plies  # multi-ply studs widen along the wall
     yaw = math.atan2(dy, dx)
     ux, uy = dx / length, dy / length
 
@@ -100,7 +252,7 @@ def frame_wall(els: list, wall: g.Wall, storey: int, spacing: int,
     def vert(code: str, s: float, z1: float, z2: float) -> None:
         """Stud-type member at station s from z1..z2 above floor."""
         x, y = at(s)
-        _el(els, code, storey, "90x45", z2 - z1, 90, 45,
+        _el(els, code, storey, "90x45", z2 - z1, 90, vert_breadth,
             x, y, z + (z1 + z2) / 2, yaw, math.pi / 2, note=note)
 
     half = 22.5  # half stud breadth
@@ -153,8 +305,9 @@ def frame_wall(els: list, wall: g.Wall, storey: int, spacing: int,
             c = s1 + 300
             while c < s2 - 100:
                 x, y = at(c)
-                _el(els, "jack_stud", storey, "90x45", gap_top, 90, 45,
-                    x, y, z + lintel_z2 + gap_top / 2, yaw, math.pi / 2, note=note)
+                _el(els, "jack_stud", storey, "90x45", gap_top, 90,
+                    vert_breadth, x, y, z + lintel_z2 + gap_top / 2,
+                    yaw, math.pi / 2, note=note)
                 c += 600
 
         if o.sill > 0:  # window: sill trimmer + jack studs under it
@@ -163,7 +316,7 @@ def frame_wall(els: list, wall: g.Wall, storey: int, spacing: int,
             while c < s2 - 100:
                 x, y = at(c)
                 _el(els, "jack_stud", storey, "90x45", o.sill - 45 - nz.PLATE_THICK,
-                    90, 45, x, y,
+                    90, vert_breadth, x, y,
                     z + nz.PLATE_THICK + (o.sill - 45 - nz.PLATE_THICK) / 2,
                     yaw, math.pi / 2, note=note)
                 c += 600
@@ -184,6 +337,16 @@ def frame_wall(els: list, wall: g.Wall, storey: int, spacing: int,
         x, y = at(mid)
         _el(els, "nog", storey, "90x45", gap, 90, 45, x, y, z + nog_z, yaw,
             0, note=note)
+
+    # --- stamp wall-frame design metadata on everything just emitted ---
+    for e in els[start:]:
+        e["plies"] = plies
+        e["segment_id"] = segment_id
+        e["segment_label"] = segment_label
+        e["stud_spacing_mm"] = spacing
+        if e["type_code"] in STUD_LIKE:
+            e["material"] = material
+            e["grade"] = material
 
 
 def _split(a: float, b: float) -> list[tuple[float, float]]:
@@ -343,7 +506,8 @@ class _Roof:
 
 
 def frame_gable_roof(els: list, rect_ft, storey: int, z: float,
-                     rspacing: int, gable_spacing: int, note: str = "") -> None:
+                     rspacing: int, gable_spacing: int, note: str = "",
+                     *, material: str = "SG8") -> None:
     r = _Roof(els, rect_ft, storey, z, note)
     r.ridge_board(r.u1, r.u2)
 
@@ -358,6 +522,7 @@ def frame_gable_roof(els: list, rect_ft, storey: int, z: float,
 
     # gable-end studs: verticals under the end rafters at custom centres,
     # standing on the end wall's top plate (roof rects overhang walls ~1 ft)
+    start = len(els)
     for u_face in (r.u1 + g.ft(1), r.u2 - g.ft(1)):
         offsets = [0.0]
         k = gable_spacing
@@ -370,6 +535,10 @@ def frame_gable_roof(els: list, rect_ft, storey: int, z: float,
                 continue
             r.place(u_face, r.vc + dv, z + h / 2, "gable_stud", "90x45",
                     h, 90, 45, 0, math.pi / 2)
+    for e in els[start:]:  # only gable_stud emitted above
+        e["material"] = material
+        e["grade"] = material
+        e["stud_spacing_mm"] = gable_spacing
 
 
 def frame_hip_roof(els: list, rect_ft, storey: int, z: float,
@@ -481,12 +650,20 @@ def slabs(els: list) -> None:
 # Top-level generator
 # ---------------------------------------------------------------------------
 
-def generate(cfg: ModelConfig | None = None) -> list[dict]:
+@dataclass
+class GenerateResult:
+    elements: list[dict]
+    segments: list[dict]   # frame-segment metadata for meta.frame_segments
+    warnings: list[str]    # scope + override + unknown-segment warnings
+
+
+def generate(cfg: ModelConfig | None = None) -> GenerateResult:
     cfg = (cfg or ModelConfig()).normalised()
     storeys = cfg.storeys
     note = "; ".join(cfg.warnings())
     rspacing = nz.rafter_spacing(cfg.snow_zone)
     els: list[dict] = []
+    segments: list[dict] = []
     slabs(els)
 
     upper_poly = [(g.ft(x), g.ft(y)) for x, y in g.UPPER_POLY_FT]
@@ -494,13 +671,34 @@ def generate(cfg: ModelConfig | None = None) -> list[dict]:
 
     for s in range(1, storeys + 1):
         z = (s - 1) * nz.STOREY_RISE
-        spacing = nz.stud_spacing(s, storeys, cfg.wind_zone)
+        nzs_default = nz.stud_spacing(s, storeys, cfg.wind_zone)
         if s == 1:
             walls = g.ground_exterior_walls() + g.ground_interior_walls()
         else:
             walls = g.upper_exterior_walls() + g.upper_interior_walls()
+        counters = {True: 0, False: 0}
         for w in walls:
-            frame_wall(els, w, s, spacing, z, note)
+            counters[w.exterior] += 1
+            prefix = "G" if s == 1 else f"L{s}"
+            kind = "EXT" if w.exterior else "INT"
+            seg_id = f"{prefix}-{kind}-{counters[w.exterior]:03d}"
+            label = (f"L{s} {'Exterior' if w.exterior else 'Interior'} "
+                     f"Wall {counters[w.exterior]:02d}")
+            mat_key = cfg.effective_stud_material(s, seg_id)
+            spacing = cfg.effective_stud_spacing(s, seg_id, nzs_default)
+            plies = cfg.effective_wall_plies(s, seg_id)
+            wall_note = note
+            if spacing != nzs_default:
+                wall_note = (f"{note}; " if note else "") + CUSTOM_SPACING_NOTE
+            segments.append(dict(
+                segment_id=seg_id, storey=s, label=label,
+                length_mm=round(math.hypot(w.x2 - w.x1, w.y2 - w.y1), 1),
+                exterior=w.exterior, openings=len(w.openings),
+                material=materials.display_name(mat_key),
+                spacing_mm=spacing, plies=plies))
+            frame_wall(els, w, s, spacing, z, wall_note,
+                       material=materials.display_name(mat_key), plies=plies,
+                       segment_id=seg_id, segment_label=label)
         if s < storeys:  # platform for the storey above
             frame_floor(els, upper_poly, s, z + WALL_H, note)
 
@@ -514,10 +712,24 @@ def generate(cfg: ModelConfig | None = None) -> list[dict]:
         if cfg.roof == "hip":
             frame_hip_roof(els, rect, st, zz, rspacing, note)
         else:
+            gable_mat = materials.display_name(
+                cfg.effective_stud_material(st, None))
             frame_gable_roof(els, rect, st, zz, rspacing,
-                             cfg.gable_spacing, note)
+                             cfg.gable_spacing, note, material=gable_mat)
     frame_porch(els, note)
-    return els
+
+    warnings = list(cfg.warnings()) + list(cfg.override_warnings)
+    if cfg.has_spacing_override():
+        warnings.append(CUSTOM_SPACING_NOTE)
+    known = {sg["segment_id"] for sg in segments}
+    for param, d in (("stud_material_segments", cfg.stud_material_segments),
+                     ("stud_spacing_segments", cfg.stud_spacing_segments),
+                     ("wall_plies_segments", cfg.wall_plies_segments)):
+        for seg in d:
+            if seg not in known:
+                warnings.append(f"unknown frame segment '{_safe(seg)}' "
+                                f"in {param} — ignored")
+    return GenerateResult(els, segments, warnings)
 
 
 if __name__ == "__main__":
@@ -525,11 +737,16 @@ if __name__ == "__main__":
     for cfg in (ModelConfig(),
                 ModelConfig(storeys=2, roof="hip"),
                 ModelConfig(storeys=3, wind_zone="very high", snow_zone="N3"),
-                ModelConfig(wind_speed=58.0, snow_zone="N5", gable_spacing=400)):
-        els = generate(cfg)
+                ModelConfig(wind_speed=58.0, snow_zone="N5", gable_spacing=400),
+                ModelConfig(storeys=2, stud_material_overall="sg10",
+                            stud_spacing_overall=400, wall_plies_overall=2,
+                            stud_material_levels={2: "hyspan"},
+                            stud_material_segments={"G-EXT-001": "glulam"})):
+        res = generate(cfg)
+        els = res.elements
         c = Counter(e["type_code"] for e in els)
         bad = [e for e in els if e["length_mm"] <= 0]
-        n = cfg.normalised()
-        print(f"{cfg} -> wind={n.wind_zone} warnings={n.warnings()}")
-        print(f"  {len(els)} elements, zero-length={len(bad)}")
+        print(f"{cfg} -> warnings={res.warnings}")
+        print(f"  {len(els)} elements, {len(res.segments)} segments, "
+              f"zero-length={len(bad)}")
         print("  ", dict(sorted(c.items())))

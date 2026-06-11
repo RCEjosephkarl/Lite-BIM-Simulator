@@ -34,7 +34,16 @@ CREATE TABLE elements (
     cz        REAL NOT NULL,
     yaw       REAL NOT NULL DEFAULT 0,
     pitch     REAL NOT NULL DEFAULT 0,
-    note      TEXT NOT NULL DEFAULT ''
+    note      TEXT NOT NULL DEFAULT '',
+    material  TEXT NOT NULL DEFAULT 'SG8',   -- display name, e.g. 'HySPAN'
+    plies     INTEGER NOT NULL DEFAULT 1,    -- wall-frame plies (1..6)
+    segment_id    TEXT DEFAULT '',           -- e.g. 'G-EXT-001' (walls only)
+    segment_label TEXT DEFAULT '',
+    stud_spacing_mm INTEGER,                 -- effective wall stud centres
+    unit_price_usd_per_lm REAL,              -- estimating data, NULL = unpriced
+    price_confidence   TEXT DEFAULT '',      -- 'high' | 'medium' | 'low'
+    price_source_name  TEXT DEFAULT '',
+    price_source_url   TEXT DEFAULT ''
 );
 
 CREATE INDEX idx_elements_type ON elements(type_code);
@@ -45,18 +54,28 @@ CREATE TABLE model_meta (
 );
 
 -- Bill of materials: TIMBER ONLY (concrete excluded), grouped by function,
--- size, grade, treatment and stock length. Stock length = piece length
--- rounded up to the next 300 mm increment (integer arithmetic — no CEIL()
--- in stock SQLite). Pieces over 6.0 m keep their rounded length but are
--- flagged for splicing / special order.
+-- size, grade, treatment, material, plies and stock length. Stock length =
+-- piece length rounded up to the next 300 mm increment (integer arithmetic —
+-- no CEIL() in stock SQLite). Pieces over 6.0 m keep their rounded length but
+-- are flagged for splicing / special order. Multi-ply wall members show a
+-- 'N/size' display size (unless the size already carries a lintel-style
+-- prefix) and cost = effective length (length x plies) x unit price.
 CREATE VIEW bom AS
 WITH pieces AS (
     SELECT
         t.category,
         t.name              AS element,
-        e.size,
+        CASE WHEN e.plies > 1 AND instr(e.size, '/') = 0
+             THEN e.plies || '/' || e.size
+             ELSE e.size END AS size,
         e.grade,
         e.treatment,
+        e.material,
+        e.plies,
+        e.unit_price_usd_per_lm,
+        e.price_confidence,
+        e.price_source_name,
+        e.price_source_url,
         t.nzs_ref,
         e.length_mm,
         ((CAST(e.length_mm AS INTEGER) + 299) / 300) * 300 AS stock_mm
@@ -70,15 +89,26 @@ SELECT
     size,
     grade,
     treatment,
+    material,
+    plies,
     stock_mm / 1000.0                    AS stock_length_m,
     COUNT(*)                             AS qty,
     ROUND(SUM(length_mm) / 1000.0, 2)    AS total_length_m,
+    ROUND(SUM(length_mm * plies) / 1000.0, 2) AS total_effective_length_m,
+    unit_price_usd_per_lm,
+    ROUND(SUM(length_mm * plies * COALESCE(unit_price_usd_per_lm, 0))
+          / 1000.0, 2)                   AS total_cost_usd,
+    price_confidence,
+    price_source_name,
+    price_source_url,
     nzs_ref,
     CASE WHEN stock_mm > 6000
          THEN 'over 6.0 m — splice or special order'
          ELSE '' END                     AS notes
 FROM pieces
-GROUP BY category, element, size, grade, treatment, stock_mm, nzs_ref
+GROUP BY category, element, size, grade, treatment, material, plies,
+         unit_price_usd_per_lm, price_confidence, price_source_name,
+         price_source_url, stock_mm, nzs_ref
 ORDER BY CASE category
              WHEN 'wall' THEN 1 WHEN 'floor' THEN 2 WHEN 'ceiling' THEN 3
              WHEN 'roof' THEN 4 WHEN 'outdoor' THEN 5 ELSE 6 END,
