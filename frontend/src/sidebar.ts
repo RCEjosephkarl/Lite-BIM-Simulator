@@ -2,7 +2,6 @@ import { getWarnings, resetProject } from "./api";
 import type { BimModel, SidebarSection } from "./types";
 
 const SECTIONS: { id: SidebarSection; icon: string; label: string }[] = [
-  { id: "dashboard", icon: "DB", label: "Dashboard" },
   { id: "specs", icon: "BS", label: "Building Specs" },
   { id: "bom", icon: "BM", label: "BOM" },
   { id: "pricing", icon: "PR", label: "Pricing" },
@@ -13,7 +12,7 @@ const SECTIONS: { id: SidebarSection; icon: string; label: string }[] = [
 ];
 
 export class Sidebar {
-  private active: SidebarSection = "dashboard";
+  private active: SidebarSection = "specs";
   private sections = new Map<SidebarSection, HTMLElement>();
   private pinned = localStorage.getItem("timberbim.sidebarPinned") === "true";
   onModel: (model: BimModel) => void = () => {};

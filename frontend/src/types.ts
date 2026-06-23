@@ -149,7 +149,7 @@ export interface BimModel {
 export type ColorMode = "function" | "material" | "realistic";
 
 export type SidebarSection =
-  "dashboard" | "specs" | "bom" | "pricing" | "imports" |
+  "specs" | "bom" | "pricing" | "imports" |
   "wall" | "truss" | "settings";
 
 export interface DashboardSummary {
