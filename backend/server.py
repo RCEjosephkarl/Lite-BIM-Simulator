@@ -28,8 +28,10 @@ from imports.csv_plan import parse_csv, rows_to_elements
 from imports.schemas import CsvCommitPayload, CsvPlanPayload, VisionCommitPayload
 from imports.validators import validate_rows
 from manual_inputs import (
+    ManualRoofInput,
     ManualTrussInput,
     ManualWallFrameInput,
+    generate_roof,
     generate_truss,
     generate_wall,
 )
@@ -104,6 +106,9 @@ async def get_model(
     stud_spacing_segments: str | None = None,
     wall_plies_segments: str | None = None,
 ) -> dict:
+    # v2.79: settings are persisted as project defaults and returned with the
+    # current (empty-by-default) geometry; they no longer regenerate a sample
+    # house, so drawn/imported walls survive a settings change.
     return db.model_json(_config(
         storeys, roof, wind_zone, wind_speed, snow_zone, gable_spacing,
         stud_material_overall, stud_spacing_overall, wall_plies_overall,
@@ -125,7 +130,7 @@ async def get_pricing() -> dict:
         "key": item["key"],
         "category": item["category"],
         "default_size": item["default_size_mm"],
-        "usd_per_linear_metre": item["default_usd_per_lm"],
+        "nzd_per_linear_metre": item["default_nzd_per_lm"],
         "confidence": item["price_confidence"],
         "source_name": item["price_source_name"],
         "source_date": item["price_source_date"],
@@ -133,19 +138,14 @@ async def get_pricing() -> dict:
         "notes": item["pricing_notes"],
     } for item in catalogue["materials"]]
     return {
-        "rows": rows, "fx": catalogue["fx"],
-        "disclaimer": "Estimating only - not supplier quote.",
+        "rows": rows, "currency": "NZD", "snapshot": catalogue["snapshot"],
+        "disclaimer": "Estimating only - not supplier quote (NZD).",
     }
 
 
 @app.get("/api/cost-summary")
 async def get_cost_summary() -> dict:
     return db.cost_summary()
-
-
-@app.get("/api/dashboard")
-async def get_dashboard() -> dict:
-    return db.dashboard()
 
 
 @app.get("/api/warnings")
@@ -186,9 +186,9 @@ def _preview_response(elements: list[dict], warnings: list[str]) -> dict:
             "temporary": True, "member_count": len(prepared),
             "lineal_metres": round(sum(
                 e["length_mm"] * e["plies"] for e in prepared) / 1000, 2),
-            "estimated_cost_usd": round(sum(
+            "estimated_cost_nzd": round(sum(
                 e["length_mm"] * e["plies"]
-                * (e["unit_price_usd_per_lm"] or 0)
+                * (e["unit_price_nzd_per_lm"] or 0)
                 for e in prepared) / 1000, 2),
             "warnings": list(dict.fromkeys(warnings)),
         },
@@ -260,6 +260,62 @@ async def commit_manual_wall(spec: ManualWallFrameInput) -> dict:
     elements, warnings = generate_wall(spec, "manual_wall", source_id)
     db.append_elements(
         elements, "manual_wall", source_id, spec.segment_label, 1, 1, 0,
+        len(warnings))
+    return {"source_id": source_id, "model": db.model_json()}
+
+
+class ManualWallsPayload(BaseModel):
+    walls: list[ManualWallFrameInput]
+
+
+@app.post("/api/manual/walls/preview")
+async def preview_manual_walls(payload: ManualWallsPayload) -> dict:
+    """Bulk preview for the 2D plan editor — one ManualWallFrameInput per drawn
+    wall. Reuses generate_wall(); nothing is written to the DB."""
+    elements: list[dict] = []
+    warnings: list[str] = []
+    for index, spec in enumerate(payload.walls, start=1):
+        source_id = spec.input_id or f"wall-preview-{index}"
+        els, warns = generate_wall(spec, "csv_preview", source_id)
+        for element in els:
+            element["source"] = "csv_preview"
+        elements.extend(els)
+        warnings.extend(warns)
+    return _preview_response(elements, warnings)
+
+
+@app.post("/api/manual/walls/commit")
+async def commit_manual_walls(payload: ManualWallsPayload) -> dict:
+    """Bulk commit for the 2D plan editor — builds every drawn wall's frame."""
+    if not payload.walls:
+        raise HTTPException(422, "Draw at least one wall before committing")
+    batch_id = f"manual-walls-{uuid.uuid4().hex[:10]}"
+    elements: list[dict] = []
+    warnings: list[str] = []
+    for index, spec in enumerate(payload.walls, start=1):
+        els, warns = generate_wall(
+            spec, "manual_wall", spec.input_id or f"{batch_id}-{index}")
+        elements.extend(els)
+        warnings.extend(warns)
+    db.append_elements(
+        elements, "manual_wall", batch_id, "2D plan editor",
+        len(payload.walls), len(payload.walls), 0, len(warnings))
+    return {"batch_id": batch_id, "model": db.model_json()}
+
+
+@app.post("/api/roof/preview")
+async def preview_roof(spec: ManualRoofInput) -> dict:
+    source_id = spec.input_id or f"roof-preview-{uuid.uuid4().hex[:10]}"
+    elements, warnings = generate_roof(spec, "vision_preview", source_id)
+    return _preview_response(elements, warnings)
+
+
+@app.post("/api/roof/commit")
+async def commit_roof(spec: ManualRoofInput) -> dict:
+    source_id = spec.input_id or f"manual-roof-{uuid.uuid4().hex[:10]}"
+    elements, warnings = generate_roof(spec, "manual_truss", source_id)
+    db.append_elements(
+        elements, "manual_truss", source_id, spec.roof_label, 1, 1, 0,
         len(warnings))
     return {"source_id": source_id, "model": db.model_json()}
 

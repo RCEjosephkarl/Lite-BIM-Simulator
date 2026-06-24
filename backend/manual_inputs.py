@@ -120,6 +120,39 @@ class ManualTrussInput(BaseModel):
         return self
 
 
+class ManualRoofInput(BaseModel):
+    """A roof over a rectangular footprint, framed in one of three styles:
+
+    - ``gable_run``  : a run of standard (normal-run) trusses spanning the width.
+    - ``hip_rafter`` : stick-framed hip — ridge, hip rafters, commons + jacks.
+    - ``mitek_hip``  : MiTek NZ-style hip truss set — standard trusses, a
+                       truncated girder at each setback, step-down hip jack
+                       trusses, hip rafters and a crown ridge (schematic).
+    """
+
+    input_id: str = ""
+    level: int = Field(default=1, ge=1, le=20)
+    roof_id: str = ""
+    roof_label: str = "Manual roof"
+    style: Literal["gable_run", "hip_rafter", "mitek_hip"] = "mitek_hip"
+    length_mm: float = Field(default=9000, gt=1000)   # along the ridge
+    width_mm: float = Field(default=7000, gt=1000)    # span (across the ridge)
+    start_x_mm: float = 0                             # a footprint corner (east)
+    start_z_mm: float = 0                             # a footprint corner (north)
+    direction_deg: float = 0                          # ridge / length direction
+    pitch_deg: float = Field(default=25, ge=1, le=60)
+    spacing_mm: float = Field(default=900, gt=100)    # truss / rafter centres
+    overhang_mm: float = Field(default=450, ge=0)
+    heel_height_mm: float = Field(default=100, ge=0)
+    top_chord_size: str = "140x45"
+    top_chord_material: str = "SG8"
+    bottom_chord_size: str = "90x45"
+    bottom_chord_material: str = "SG8"
+    web_size: str = "90x45"
+    web_material: str = "SG8"
+    treatment: str = "H1.2"
+
+
 def _size(size: str, default=(90.0, 45.0)) -> tuple[float, float]:
     try:
         clean = size.split("/")[-1].split()[0]
@@ -400,4 +433,155 @@ def generate_truss(
                 truss_label=spec.truss_label, pitch_deg=spec.pitch_deg,
                 span_mm=spec.span_mm, spacing_mm=spec.spacing_mm,
                 plies=3 if spec.truss_type == "girder" else 1))
+    return els, warnings
+
+
+def _steps(a: float, b: float, step: float) -> list[float]:
+    """Evenly spaced stations from a to b inclusive, ~`step` apart."""
+    if b <= a:
+        return [a]
+    n = max(1, round((b - a) / step))
+    return [a + (b - a) * i / n for i in range(n + 1)]
+
+
+def roof_warnings(spec: ManualRoofInput) -> list[str]:
+    out = ["roof layout is conceptual - MiTek/supplier shop drawings and "
+           "specific design required"]
+    if spec.pitch_deg < 10 or spec.pitch_deg > 45:
+        out.append("pitch is outside the common residential range")
+    if spec.style in {"mitek_hip", "hip_rafter"} and spec.width_mm > spec.length_mm:
+        out.append("width exceeds length - hips are framed off the shorter ends")
+    return out
+
+
+def generate_roof(
+    spec: ManualRoofInput, source: str = "manual_truss",
+    source_id: str | None = None,
+) -> tuple[list[dict], list[str]]:
+    """Frame a roof over a rectangular footprint in the chosen style.
+
+    Plan coords: u runs along the ridge (`direction_deg`), v runs across the
+    span. The four eave corners sit at v=0 and v=W (= width_mm), height 0; the
+    ridge runs at v=W/2, height `rise`. Hips are framed off the two short ends.
+    """
+    sid = source_id or spec.input_id or f"roof-{uuid.uuid4().hex[:10]}"
+    rid = spec.roof_id or sid
+    warnings = roof_warnings(spec)
+    note = "; ".join(warnings)
+    ang = math.radians(spec.direction_deg)
+    along = (math.cos(ang), math.sin(ang))
+    across = (-math.sin(ang), math.cos(ang))
+    ox, oz = spec.start_x_mm, spec.start_z_mm
+    wall_top = nz.PLATE_THICK + nz.STUD_HEIGHT + 2 * nz.PLATE_THICK
+    floor_z = (spec.level - 1) * nz.STOREY_RISE + wall_top + spec.heel_height_mm
+    tan = math.tan(math.radians(spec.pitch_deg))
+    L, W, oh = spec.length_mm, spec.width_mm, spec.overhang_mm
+    rise = (W / 2) * tan
+    setback = min(W / 2, L / 2 - 1)   # 45-degree hip set-in from each short end
+    els: list[dict] = []
+
+    def plan(u: float, v: float) -> tuple[float, float]:
+        return (ox + along[0] * u + across[0] * v,
+                oz + along[1] * u + across[1] * v)
+
+    def place(code: str, size: str, material: str,
+              a: tuple[float, float, float], b: tuple[float, float, float],
+              plies: int = 1) -> None:
+        u1, v1, h1 = a
+        u2, v2, h2 = b
+        x1, z1 = plan(u1, v1)
+        x2, z2 = plan(u2, v2)
+        e1, e2 = floor_z + h1, floor_z + h2
+        planlen = math.hypot(x2 - x1, z2 - z1)
+        length = math.hypot(planlen, e2 - e1)
+        if length < 1:
+            return
+        depth, breadth = _size(size)
+        els.append(_base_element(
+            code, spec.level, size, material, spec.treatment, length,
+            breadth, depth, (x1 + x2) / 2, (z1 + z2) / 2, (e1 + e2) / 2,
+            math.atan2(z2 - z1, x2 - x1), math.atan2(e2 - e1, planlen),
+            source, sid, note, warnings=warnings, truss_id=rid,
+            truss_label=spec.roof_label, pitch_deg=spec.pitch_deg,
+            span_mm=W, spacing_mm=spec.spacing_mm, plies=plies))
+
+    def standard_truss(u: float, girder: bool = False) -> None:
+        plies = 3 if girder else 1
+        tc = "truss_girder" if girder else "truss_top_chord"
+        bc = "truss_girder" if girder else "truss_bottom_chord"
+        wc = "truss_girder" if girder else "truss_web"
+        apex = (u, W / 2, rise)
+        place(tc, spec.top_chord_size, spec.top_chord_material,
+              (u, -oh, -oh * tan), apex, plies)
+        place(tc, spec.top_chord_size, spec.top_chord_material,
+              apex, (u, W + oh, -oh * tan), plies)
+        place(bc, spec.bottom_chord_size, spec.bottom_chord_material,
+              (u, 0, 0), (u, W, 0), plies)
+        place(wc, spec.web_size, spec.web_material, (u, W / 2, 0), apex, plies)
+        place(wc, spec.web_size, spec.web_material,
+              (u, 0, 0), (u, W / 4, rise / 2), plies)
+        place(wc, spec.web_size, spec.web_material,
+              (u, W, 0), (u, 3 * W / 4, rise / 2), plies)
+
+    def stepdown_truss(u: float, h: float) -> None:
+        """Truncated (flat-top) hip truss at height h: top slopes rise from each
+        eave at the roof pitch to a flat top of width W - 2*(h/tan)."""
+        half = min(W / 2, h / tan) if tan else 0
+        place("truss_jack", spec.top_chord_size, spec.top_chord_material,
+              (u, -oh, -oh * tan), (u, half, h))
+        place("truss_jack", spec.top_chord_size, spec.top_chord_material,
+              (u, half, h), (u, W - half, h))
+        place("truss_jack", spec.top_chord_size, spec.top_chord_material,
+              (u, W - half, h), (u, W + oh, -oh * tan))
+        place("truss_jack", spec.bottom_chord_size, spec.bottom_chord_material,
+              (u, 0, 0), (u, W, 0))
+        place("truss_jack", spec.web_size, spec.web_material,
+              (u, W / 2, 0), (u, W / 2, h))
+
+    if spec.style == "gable_run":
+        for u in _steps(0, L, spec.spacing_mm):
+            standard_truss(u)
+
+    elif spec.style == "mitek_hip":
+        for u in _steps(setback, L - setback, spec.spacing_mm):
+            standard_truss(u)
+        standard_truss(setback, girder=True)
+        standard_truss(L - setback, girder=True)
+        # Step-down hip jack trusses: height tapers rise -> 0 toward each end.
+        for d in _steps(0, setback, spec.spacing_mm)[1:-1]:
+            stepdown_truss(d, rise * d / setback)
+            stepdown_truss(L - d, rise * d / setback)
+        apex_a, apex_b = (setback, W / 2, rise), (L - setback, W / 2, rise)
+        for corner in ((0, 0, 0), (0, W, 0)):
+            place("truss_crown", spec.top_chord_size, spec.top_chord_material,
+                  corner, apex_a)
+        for corner in ((L, 0, 0), (L, W, 0)):
+            place("truss_crown", spec.top_chord_size, spec.top_chord_material,
+                  corner, apex_b)
+        place("truss_crown", spec.top_chord_size, spec.top_chord_material,
+              apex_a, apex_b)
+        place("truss_crown", spec.bottom_chord_size, spec.bottom_chord_material,
+              (0, 0, 0), (0, W, 0))
+        place("truss_crown", spec.bottom_chord_size, spec.bottom_chord_material,
+              (L, 0, 0), (L, W, 0))
+
+    else:   # hip_rafter (stick framed)
+        apex_a, apex_b = (setback, W / 2, rise), (L - setback, W / 2, rise)
+        place("ridge", "190x45", "SG8", apex_a, apex_b)
+        for corner, apex in (((0, 0, 0), apex_a), ((0, W, 0), apex_a),
+                             ((L, 0, 0), apex_b), ((L, W, 0), apex_b)):
+            place("hip_rafter", "190x45", "SG8", corner, apex)
+        for u in _steps(setback, L - setback, spec.spacing_mm):
+            place("rafter", "140x45", "SG8",
+                  (u, -oh, -oh * tan), (u, W / 2, rise))
+            place("rafter", "140x45", "SG8",
+                  (u, W / 2, rise), (u, W + oh, -oh * tan))
+        # Front/back jack rafters in the two hip end zones, cut to the hip line.
+        for d in _steps(0, setback, spec.spacing_mm)[1:-1]:
+            for u in (d, L - d):
+                place("jack_rafter", "140x45", "SG8",
+                      (u, -oh, -oh * tan), (u, d, d * tan))
+                place("jack_rafter", "140x45", "SG8",
+                      (u, W + oh, -oh * tan), (u, W - d, d * tan))
+
     return els, warnings

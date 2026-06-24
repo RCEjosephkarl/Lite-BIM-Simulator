@@ -3,6 +3,7 @@ import type { BimModel, SidebarSection } from "./types";
 
 const SECTIONS: { id: SidebarSection; icon: string; label: string }[] = [
   { id: "specs", icon: "BS", label: "Building Specs" },
+  { id: "draw", icon: "DR", label: "Draw Plan (walls + roof)" },
   { id: "bom", icon: "BM", label: "BOM" },
   { id: "pricing", icon: "PR", label: "Pricing" },
   { id: "imports", icon: "IM", label: "Imports / Drawing Plans" },
@@ -67,11 +68,13 @@ export class Sidebar {
       <button id="reset-app" class="danger-button">Reset app state</button>`);
     this.getSection("settings").querySelector("#reset-app")!.addEventListener(
       "click", async () => {
-        if (!confirm("Clear all imported/manual elements and restore the sample model?"))
+        if (!confirm("Clear the project back to an empty canvas? This removes "
+          + "all drawn, manual and imported elements."))
           return;
         const model = await resetProject();
         localStorage.removeItem("timberbim.manualWallDraft");
         localStorage.removeItem("timberbim.manualTrussDraft");
+        localStorage.removeItem("timberbim.planEditor");
         this.onModel(model);
         await this.refreshWarnings();
       });

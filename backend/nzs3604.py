@@ -179,6 +179,8 @@ ELEMENT_TYPES = {
     "truss_king_post": ("Truss king post", "roof", "specific design / supplier", "#22c55e"),
     "truss_queen_post": ("Truss queen post", "roof", "specific design / supplier", "#86efac"),
     "truss_girder":  ("Girder truss member", "roof", "specific design / supplier", "#166534"),
+    "truss_jack":    ("Hip jack truss member", "roof", "MiTek NZ hip system / supplier", "#3f6212"),
+    "truss_crown":   ("Hip crown / creeper", "roof", "MiTek NZ hip system / supplier", "#a3e635"),
     "slab":          ("Concrete slab",      "concrete", "NZS 3604 cl. 7.5 (slab-on-ground)", "#9ca3af"),
 }
 

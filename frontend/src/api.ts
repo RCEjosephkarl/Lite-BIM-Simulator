@@ -1,6 +1,6 @@
 import type {
-  BimModel, BomRow, CsvPlanRow, CsvValidationResult, DashboardSummary,
-  ImportBatch,
+  BimModel, BomRow, CsvPlanRow, CsvValidationResult,
+  ImportBatch, ManualRoofInput,
   ManualTrussInput, ManualWallFrameInput, ModelParams, PreviewResult,
   PricingRow, VisionPlanAnalysisResult, VisionProposal,
 } from "./types";
@@ -57,7 +57,6 @@ export function downloadBom(): void {
   window.location.href = "/api/bom.csv";
 }
 
-export const getDashboardSummary = () => json<DashboardSummary>("/api/dashboard");
 export const getBomJson = () => json<{ rows: BomRow[]; disclaimer: string }>(
   "/api/bom.json");
 export const getPricing = () => json<{ rows: PricingRow[]; disclaimer: string }>(
@@ -115,6 +114,19 @@ export const previewManualTruss = (input: ManualTrussInput) =>
 export const commitManualTruss = (input: ManualTrussInput) =>
   post<{ source_id: string; model: BimModel }>(
     "/api/manual/truss/commit", input);
+
+// 2D plan editor — bulk walls drawn on the canvas.
+export const previewManualWalls = (walls: ManualWallFrameInput[]) =>
+  post<PreviewResult>("/api/manual/walls/preview", { walls });
+export const commitManualWalls = (walls: ManualWallFrameInput[]) =>
+  post<{ batch_id: string; model: BimModel }>(
+    "/api/manual/walls/commit", { walls });
+
+// Roof over a footprint — gable run / hip rafter / MiTek hip truss.
+export const previewRoof = (input: ManualRoofInput) =>
+  post<PreviewResult>("/api/roof/preview", input);
+export const commitRoof = (input: ManualRoofInput) =>
+  post<{ source_id: string; model: BimModel }>("/api/roof/commit", input);
 
 export const resetProject = () => post<BimModel>("/api/project/reset", {});
 export const getImportBatches = () => json<{ batches: ImportBatch[] }>(

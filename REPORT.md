@@ -1,19 +1,150 @@
 # TimberBIM Lite — Development Report
 
-**Latest:** 2026-06-16 · **Standard referenced:** NZS 3604:2011 ·
+**Latest:** 2026-06-24 · **Standard referenced:** NZS 3604:2011 ·
 **Status:** work in progress
 
-> This report leads with the **most heavily-prompted, most-iterated
-> development** — the dashboard, imports, manual framing and UI-layout work
-> (v2.0 → v2.1) — because that is where most of the recent effort has gone. The
-> earlier feature history (v1.1 roof/exposure rules, v1.2 stud-design overrides
-> and cost estimating) follows below for completeness.
+> This report now leads with the **v2.79 total rework** — an empty-canvas,
+> draw-it-yourself BIM workspace with NZD costing and MiTek-style hip trusses —
+> which supersedes much of the earlier sample-house workflow. The previous
+> dashboard / imports / manual-framing work (v2.0 → v2.1) and the v1.x feature
+> history follow below for context; note where v2.79 has **removed or replaced**
+> them (the dashboard HUD is gone; costing moved from USD to NZD).
 
 ---
 
-# 🟢 Development focus — Dashboard, Imports, Manual Framing & UI layout (v2.0–v2.1)
+# 🟢 Development focus — Total rework (v2.79, 2026-06-24)
 
-This is the largest and most-iterated slice of the project to date: it turned a
+The user could not use the fixed reference sample plan, so the product was
+re-conceived around **manual BIM input on an empty canvas**. The proven backend
+engine (FastAPI + the NZS 3604 framing/costing generators in `framing.py`,
+`nzs3604.py`, `materials.py`, `db.py`) was **kept**; the boot path, currency,
+roof options, drawing UX and dashboard were changed around it.
+
+## 1. Empty canvas by default
+
+The app no longer generates the 70′×60′ sample house on boot. `db.rebuild()`
+gained a `seed_sample` flag (default **False**); `ensure_model()` and
+`reset_project()` now create an **empty** project (element-type catalogue +
+empty geometry, no `framing.generate()` call). The sample generator and
+`geometry.py` remain in the tree — reusable framing math and an opt-in
+(`rebuild(cfg, seed_sample=True)`) — but are off the default path.
+
+Crucially, **settings no longer wipe geometry.** `GET /api/model?storeys=…&roof=…`
+used to call `rebuild(cfg)` whenever stored params differed, regenerating (and
+destroying) everything. It now persists those settings via a new
+`db.store_params()` and returns the current drawn/imported model untouched, so
+changing roof/wind/snow never deletes the walls you drew. `meta.storeys` derives
+from the storeys actually present (default 1 when empty).
+
+## 2. 2D plan editor — click/drag wall + opening input
+
+New module `frontend/src/planEditor.ts` adds a **"Draw" sidebar section** with a
+top-down HTML5-canvas plan editor (no new dependencies):
+
+- **Draw** walls by click-drag *or* click-each-end (chained polyline), snapping
+  to a configurable grid (50/100/300/600 mm) and to existing wall endpoints.
+  Right-drag pans, wheel zooms.
+- **Per level**: a level switcher; each level keeps its own wall set, drawn in a
+  faint colour when not active.
+- **Select** a wall to edit its framing metadata (height, thickness, stud
+  size/material/spacing, plies, exterior, load-bearing, treatment) **and its
+  openings** (type/offset/width/height/sill), which render as gaps on the wall.
+- Drawings persist to `localStorage` (`timberbim.planEditor`).
+
+Each drawn wall maps to the existing `ManualWallFrameInput` contract and is built
+by the **existing `generate_wall` engine** through two new bulk endpoints:
+`POST /api/manual/walls/preview` (magenta overlay, nothing committed) and
+`POST /api/manual/walls/commit`. Re-building deletes the editor's previous batch
+first, so iterating the plan does not pile up duplicate frames. The 3D viewport
+updates live via the existing `setModel` → instanced-mesh path.
+
+## 3. Costing in NZD (snapshot 2026-06-22 09:00 NZST)
+
+The catalogue source prices were always NZD but were FX-converted to USD. v2.79
+**drops the FX layer entirely** and quotes NZD directly. `materials.py` removed
+`_usd()`, `FX_RATE_NZD_USD` and the `fx_*` fields; renamed
+`default_usd_per_lm`→`default_nzd_per_lm`,
+`size_prices_usd_per_lm`→`size_prices_nzd_per_lm`,
+`unit_price_usd_per_lm()`→`unit_price_nzd_per_lm()`; set every
+`price_source_date` to `2026-06-22` and added `PRICE_SNAPSHOT =
+"2026-06-22 09:00 NZST"`. The rename flows through `schema.sql`
+(`unit_price_nzd_per_lm`, `bom.total_cost_nzd`), `db.py` (cost SQL, `cost_summary`
+→ `grand_total_nzd`/`cost_nzd`, `currency: "NZD"`), `server.py`
+(`/api/pricing` → `nzd_per_linear_metre` + `snapshot`, preview
+`estimated_cost_nzd`) and the frontend (`$NZ` / NZD labels in the BOM, pricing,
+element panel and stats).
+
+## 4. MiTek NZ hip truss + three roof styles over a footprint
+
+New `ManualRoofInput` + `generate_roof()` (`manual_inputs.py`) frame a roof over
+a rectangular footprint (defaulting to the bounding box of the active level's
+drawn walls) in one of three styles, via `POST /api/roof/preview|commit`:
+
+| Style | Members generated |
+|---|---|
+| `gable_run` — normal-run trusses | standard trusses (top/bottom chord + webs) at centres across the span |
+| `hip_rafter` — stick framed | ridge, four hip rafters, common rafters, front/back jack rafters cut to the hip lines |
+| `mitek_hip` — **MiTek NZ hip truss** | standard trusses over the central run, a **truncated girder** (`plies=3`) at each set-back, **step-down hip jack** trusses tapering to the ends, hip rafters + a **crown/creeper** ridge |
+
+Two new element types — `truss_jack` and `truss_crown` — were added to
+`nzs3604.ELEMENT_TYPES` (seeded into `element_types`, coloured in the legend).
+The hip set is **schematic / lite**, not nail-plate engineering; every member
+carries a "conceptual — MiTek/supplier shop drawings and specific design
+required" warning.
+
+## 5. Dashboard removed
+
+The floating dashboard HUD was removed for now: deleted
+`frontend/src/dashboard.ts`, the `#dashboard-hud` container and `.hud` styles in
+`index.html`, the `Dashboard` wiring in `main.ts`, `DashboardSummary` in
+`types.ts`, and the `GET /api/dashboard` endpoint + `db.dashboard()`. BOM
+download stays available from the Building-Specs panel and the BOM tab; the
+Settings panel's reset now clears the project back to an empty canvas.
+
+## Files changed (v2.79)
+
+| File | Change |
+|---|---|
+| `backend/materials.py` | NZD-only catalogue; FX layer removed; `PRICE_SNAPSHOT`; `unit_price_nzd_per_lm` |
+| `backend/db.py` | `seed_sample` flag (empty default); `store_params()` (settings don't wipe geometry); NZD cost SQL; `dashboard()` removed |
+| `backend/schema.sql` | `unit_price_nzd_per_lm`, `bom.total_cost_nzd` |
+| `backend/manual_inputs.py` | `ManualRoofInput` + `generate_roof()` (gable run / hip rafter / MiTek hip) |
+| `backend/nzs3604.py` | `truss_jack`, `truss_crown` element types |
+| `backend/server.py` | `/api/manual/walls/{preview,commit}`, `/api/roof/{preview,commit}`; `/api/model` persists settings; `/api/dashboard` removed; NZD fields |
+| `frontend/src/planEditor.ts` | **new** — 2D canvas plan editor (draw walls, openings, roof) |
+| `frontend/src/{main,sidebar,types,api,ui,bomPanel,pricingPanel,manualInputs}.ts` | Draw section; dashboard removed; USD→NZD |
+| `frontend/index.html` | Draw-canvas styles; `#dashboard-hud` + `.hud` removed |
+| `backend/test_smoke.py` | rewritten for empty default, NZD, bulk walls, three roof styles (19 passing) |
+
+## Verification (v2.79)
+
+- `python -m pytest backend/test_smoke.py` — **19 passed**: empty default model,
+  settings don't wipe geometry, reset → empty, bulk-wall preview/commit (frames
+  + lintel from an opening), the three roof styles (MiTek hip emits girder +
+  jack + crown, girders `plies=3`, no zero-length members), NZD pricing/BOM/
+  cost-summary consistency, `/api/dashboard` 404, and retained CSV/manual/ML
+  surfaces.
+- `tsc && vite build` — clean; built `dist/index.html` contains the Draw canvas
+  and **no** `#dashboard-hud`.
+
+## Engineering / estimating disclaimer (v2.79)
+
+Still an education, early-design and estimating tool. Drawn walls, openings and
+roof trusses are **conceptual**; MiTek hip layouts are schematic, not
+plate-engineered. NZD prices are a GST-inclusive retail snapshot
+(2026-06-22 09:00 NZST), not quotes, and exclude delivery, fixings, labour and
+waste. NZS 3604:2011 or specific engineering design governs construction.
+
+---
+
+# Dashboard, Imports, Manual Framing & UI layout (v2.0–v2.1)
+
+> **Superseded by v2.79.** The **dashboard HUD described in this section was
+> removed**, the empty-canvas rework replaced the sample-house boot path, and
+> costing moved from **USD to NZD**. The CSV-import and manual-framing engines
+> described here are retained and still used by the new 2D plan editor.
+
+This is the largest and most-iterated slice of the project before v2.79: it turned a
 read-only 3D viewer into an interactive workspace where users feed in their own
 geometry, review it before it touches the model, and read the results back from
 a dedicated dashboard. It also absorbed the most prompt iterations — the UI

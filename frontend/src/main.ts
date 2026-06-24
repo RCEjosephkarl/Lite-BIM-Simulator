@@ -1,8 +1,8 @@
 import { downloadBom, fetchModel, paramsToQuery } from "./api";
 import { BomPanel } from "./bomPanel";
-import { Dashboard } from "./dashboard";
 import { ImportsPanel } from "./imports";
 import { ManualInputs } from "./manualInputs";
+import { PlanEditor } from "./planEditor";
 import { PricingPanel } from "./pricingPanel";
 import { Viewer } from "./scene";
 import { Sidebar } from "./sidebar";
@@ -22,12 +22,12 @@ let params: ModelParams = { ...DEFAULT_PARAMS, ...paramsFromUrl() };
 let currentModel: BimModel | null = null;
 let previewModel: BimModel | null = null;
 
-const dashboard = new Dashboard(document.getElementById("dashboard-hud")!);
 const bomPanel = new BomPanel(sidebar.getSection("bom"));
 const pricingPanel = new PricingPanel(sidebar.getSection("pricing"));
 const importsPanel = new ImportsPanel(sidebar.getSection("imports"));
 const manualInputs = new ManualInputs(
   sidebar.getSection("wall"), sidebar.getSection("truss"));
+const planEditor = new PlanEditor(sidebar.getSection("draw"));
 
 const panel = new Panel(sidebar.getSection("specs"), {
   onParams(patch) {
@@ -59,11 +59,12 @@ viewer.onPick = (element, type) => {
   if (element) sidebar.open("specs");
 };
 
-dashboard.onModel = setModel;
 importsPanel.onModel = setModel;
 manualInputs.onModel = setModel;
+planEditor.onModel = setModel;
 importsPanel.onPreview = showPreview;
 manualInputs.onPreview = showPreview;
+planEditor.onPreview = showPreview;
 sidebar.onModel = setModel;
 
 function showPreview(result: PreviewResult): void {
@@ -101,7 +102,7 @@ function render(): void {
 
 async function refreshDataPanels(): Promise<void> {
   await Promise.allSettled([
-    dashboard.refresh(), bomPanel.refresh(), pricingPanel.refresh(),
+    bomPanel.refresh(), pricingPanel.refresh(),
     sidebar.refreshWarnings(), importsPanel.refreshBatches(),
   ]);
 }

@@ -27,7 +27,7 @@
     body.sidebar-pinned #viewport { left: var(--sidebar); }
     #viewport canvas { display: block; }
     #viewport.loading::after {
-      content: "Generating framing...";
+      content: "Loading model...";
       position: absolute; inset: 0; display: grid; place-items: center;
       background: rgba(20, 24, 30, .48); color: #fff; font-size: 18px;
     }
@@ -141,36 +141,22 @@
     }
     .summary-card span { display: block; color: var(--dim); font-size: 11px; }
     .summary-card strong { display: block; margin-top: 7px; font-size: 18px; }
-    /* Dashboard output HUD — floats over the 3D viewport, away from the
-       input sidebar, so the two never overlap. */
-    .hud {
-      position: fixed; z-index: 15; top: 16px; right: 16px; width: 300px;
-      max-height: calc(100vh - 32px); overflow: auto; padding: 14px;
-      border: 1px solid var(--line); border-radius: 12px;
-      background: rgba(25, 32, 41, .93); backdrop-filter: blur(6px);
-      box-shadow: 0 14px 34px rgba(0, 0, 0, .4);
+    /* 2D plan editor — drawing canvas + toolbar inside the Draw panel. */
+    .plan-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .plan-toolbar button, .plan-toolbar select {
+      padding: 6px 9px; border: 1px solid var(--line); border-radius: 7px;
+      background: var(--panel-2); color: var(--text); cursor: pointer;
     }
-    .hud.collapsed { width: auto; }
-    .hud.collapsed .hud-body { display: none; }
-    .hud-header {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 10px; margin-bottom: 12px;
+    .plan-toolbar button.on {
+      background: var(--accent); border-color: var(--accent);
+      color: var(--accent-dark); font-weight: 700;
     }
-    .hud.collapsed .hud-header { margin-bottom: 0; }
-    .hud-header h2 {
-      margin: 0; color: var(--text); font-size: 14px;
-      text-transform: none; letter-spacing: 0;
+    .plan-canvas {
+      width: 100%; height: 320px; touch-action: none; cursor: crosshair;
+      border: 1px solid var(--line); border-radius: 8px; background: #11161d;
+      display: block;
     }
-    .hud-toggle {
-      min-width: 30px; padding: 4px 9px; border: 1px solid var(--line);
-      border-radius: 7px; background: transparent; color: var(--dim);
-      cursor: pointer; line-height: 1;
-    }
-    .hud-toggle:hover { border-color: var(--accent); color: var(--text); }
-    .hud .summary-grid { margin-bottom: 12px; }
-    @media (max-width: 760px) {
-      .hud { width: calc(100vw - 32px); }
-    }
+    .plan-hint { margin: 6px 0; color: var(--dim); font-size: 11.5px; }
     .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 8px; }
     .filter-grid input { grid-column: 1 / -1; }
     .table-wrap {
@@ -231,8 +217,7 @@
 </head>
 <body>
   <main id="viewport" aria-label="Interactive 3D BIM model"></main>
-  <aside id="sidebar" aria-label="TimberBIM dashboard"></aside>
-  <section id="dashboard-hud" aria-label="Model dashboard summary"></section>
+  <aside id="sidebar" aria-label="TimberBIM workspace"></aside>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
