@@ -24,7 +24,7 @@ ELEMENT_COLUMNS = (
     "type_code", "storey", "size", "grade", "treatment", "length_mm",
     "w_mm", "h_mm", "cx", "cy", "cz", "yaw", "pitch", "note",
     "material", "plies", "segment_id", "segment_label", "stud_spacing_mm",
-    "unit_price_usd_per_lm", "price_confidence", "price_source_name",
+    "unit_price_nzd_per_lm", "price_confidence", "price_source_name",
     "price_source_url", "source", "source_id", "editable", "confidence",
     "warnings", "truss_id", "truss_label", "pitch_deg", "span_mm",
     "spacing_mm",
@@ -47,12 +47,12 @@ def _price(e: dict) -> None:
     """Attach estimating price columns to one element in place."""
     key = materials.normalise_material_key(e.get("material"))
     if key is None:
-        e.update(unit_price_usd_per_lm=None, price_confidence="",
+        e.update(unit_price_nzd_per_lm=None, price_confidence="",
                  price_source_name="", price_source_url="")
         return
-    price, conf, src, url, _notes = materials.unit_price_usd_per_lm(
+    price, conf, src, url, _notes = materials.unit_price_nzd_per_lm(
         key, e.get("size", "90x45"))
-    e.update(unit_price_usd_per_lm=price, price_confidence=conf,
+    e.update(unit_price_nzd_per_lm=price, price_confidence=conf,
              price_source_name=src, price_source_url=url)
 
 
@@ -283,11 +283,11 @@ def model_json(cfg: ModelConfig | None = None) -> dict:
 
 
 COST_DISCLAIMER = (
-    "Estimating only - not supplier quote. Public retail prices converted "
-    "to USD; excludes delivery, fixings, labour and waste."
+    "Estimating only - not supplier quote. Public NZ retail prices in NZD "
+    "(GST-inclusive); excludes delivery, fixings, labour and waste."
 )
-_COST = "SUM(length_mm * plies * unit_price_usd_per_lm) / 1000.0"
-_PRICED = "unit_price_usd_per_lm IS NOT NULL"
+_COST = "SUM(length_mm * plies * unit_price_nzd_per_lm) / 1000.0"
+_PRICED = "unit_price_nzd_per_lm IS NOT NULL"
 
 
 def cost_summary(con: sqlite3.Connection | None = None) -> dict:
@@ -302,25 +302,25 @@ def cost_summary(con: sqlite3.Connection | None = None) -> dict:
     by_material = [dict(r) for r in con.execute(
         f"SELECT material, ROUND(SUM(length_mm) / 1000.0, 1) AS lineal_m, "
         f"ROUND(SUM(length_mm * plies) / 1000.0, 1) AS effective_lm, "
-        f"ROUND({_COST}, 2) AS cost_usd FROM elements WHERE {_PRICED} "
-        "GROUP BY material ORDER BY cost_usd DESC")]
+        f"ROUND({_COST}, 2) AS cost_nzd FROM elements WHERE {_PRICED} "
+        "GROUP BY material ORDER BY cost_nzd DESC")]
     by_storey = [dict(r) for r in con.execute(
-        f"SELECT storey, ROUND({_COST}, 2) AS cost_usd "
+        f"SELECT storey, ROUND({_COST}, 2) AS cost_nzd "
         f"FROM elements WHERE {_PRICED} GROUP BY storey ORDER BY storey")]
     by_segment = [dict(r) for r in con.execute(
         f"SELECT segment_id, segment_label AS label, ROUND({_COST}, 2) "
-        f"AS cost_usd FROM elements WHERE {_PRICED} AND segment_id <> '' "
+        f"AS cost_nzd FROM elements WHERE {_PRICED} AND segment_id <> '' "
         "GROUP BY segment_id, segment_label ORDER BY segment_id")]
     by_element = [dict(r) for r in con.execute(
         "SELECT t.category, t.name AS element, "
-        "ROUND(SUM(e.length_mm * e.plies * e.unit_price_usd_per_lm) "
-        "/ 1000.0, 2) AS cost_usd FROM elements e "
+        "ROUND(SUM(e.length_mm * e.plies * e.unit_price_nzd_per_lm) "
+        "/ 1000.0, 2) AS cost_nzd FROM elements e "
         "JOIN element_types t ON t.code=e.type_code "
-        f"WHERE e.{_PRICED} GROUP BY t.category,t.name ORDER BY cost_usd DESC")]
+        f"WHERE e.{_PRICED} GROUP BY t.category,t.name ORDER BY cost_nzd DESC")]
     if own:
         con.close()
     return {
-        "currency": "USD", "grand_total_usd": grand,
+        "currency": "NZD", "grand_total_nzd": grand,
         "by_material": by_material, "by_storey": by_storey,
         "by_segment": by_segment, "by_element": by_element,
         "disclaimer": COST_DISCLAIMER,
@@ -339,13 +339,13 @@ def bom_json() -> dict:
     rows = bom_rows()
     for row in rows:
         row["effective_length_m"] = row["total_effective_length_m"]
-        row["estimated_cost_usd"] = row["total_cost_usd"]
+        row["estimated_cost_nzd"] = row["total_cost_nzd"]
         key = materials.normalise_material_key(row["material"])
         row["pricing_notes"] = (
             materials.MATERIALS[key].pricing_notes if key else
             "No catalogue match - add a session override."
         )
-    return {"rows": rows, "currency": "USD", "disclaimer": COST_DISCLAIMER}
+    return {"rows": rows, "currency": "NZD", "disclaimer": COST_DISCLAIMER}
 
 
 def bom_csv() -> str:
@@ -447,7 +447,7 @@ def warnings_json() -> dict:
             "source": element["source"], "source_id": element["source_id"],
             "element_id": element["id"], "message": warning,
         } for warning in element["warnings"])
-        if (element["unit_price_usd_per_lm"] is None
+        if (element["unit_price_nzd_per_lm"] is None
                 and element["material"].lower() != "concrete"):
             warnings.append({
                 "source": element["source"], "source_id": element["source_id"],
@@ -477,8 +477,8 @@ def dashboard() -> dict:
         "total_elements": len(model["elements"]),
         "wall_frame_lineal_m": lengths.get("wall", 0),
         "roof_truss_lineal_m": lengths.get("roof", 0),
-        "estimated_material_cost_usd":
-            model["meta"]["cost_summary"]["grand_total_usd"],
+        "estimated_material_cost_nzd":
+            model["meta"]["cost_summary"]["grand_total_nzd"],
         "warning_count": len(warnings_json()["warnings"]),
     }
 

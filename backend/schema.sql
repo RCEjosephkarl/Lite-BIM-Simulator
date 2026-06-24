@@ -41,7 +41,7 @@ CREATE TABLE elements (
     segment_id    TEXT DEFAULT '',           -- e.g. 'G-EXT-001' (walls only)
     segment_label TEXT DEFAULT '',
     stud_spacing_mm INTEGER,                 -- effective wall stud centres
-    unit_price_usd_per_lm REAL,              -- estimating data, NULL = unpriced
+    unit_price_nzd_per_lm REAL,              -- estimating data, NULL = unpriced
     price_confidence   TEXT DEFAULT '',      -- 'high' | 'medium' | 'low'
     price_source_name  TEXT DEFAULT '',
     price_source_url   TEXT DEFAULT '',
@@ -98,7 +98,7 @@ WITH pieces AS (
         e.treatment,
         e.material,
         e.plies,
-        e.unit_price_usd_per_lm,
+        e.unit_price_nzd_per_lm,
         e.price_confidence,
         e.price_source_name,
         e.price_source_url,
@@ -123,9 +123,9 @@ SELECT
     COUNT(*)                             AS qty,
     ROUND(SUM(length_mm) / 1000.0, 2)    AS total_length_m,
     ROUND(SUM(length_mm * plies) / 1000.0, 2) AS total_effective_length_m,
-    unit_price_usd_per_lm,
-    ROUND(SUM(length_mm * plies * COALESCE(unit_price_usd_per_lm, 0))
-          / 1000.0, 2)                   AS total_cost_usd,
+    unit_price_nzd_per_lm,
+    ROUND(SUM(length_mm * plies * COALESCE(unit_price_nzd_per_lm, 0))
+          / 1000.0, 2)                   AS total_cost_nzd,
     price_confidence,
     price_source_name,
     price_source_url,
@@ -135,7 +135,7 @@ SELECT
          ELSE '' END                     AS notes
 FROM pieces
 GROUP BY category, element, storey, segment, size, grade, treatment, material, plies,
-         unit_price_usd_per_lm, price_confidence, price_source_name,
+         unit_price_nzd_per_lm, price_confidence, price_source_name,
          price_source_url, stock_mm, nzs_ref
 ORDER BY CASE category
              WHEN 'wall' THEN 1 WHEN 'floor' THEN 2 WHEN 'ceiling' THEN 3

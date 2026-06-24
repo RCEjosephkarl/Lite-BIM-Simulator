@@ -60,7 +60,7 @@ export class BomPanel {
       <thead><tr><th>Category</th><th>Element</th><th>Storey</th>
         <th>Segment</th><th>Size</th><th>Material / grade</th>
         <th>Treatment</th><th>Plies</th><th>Total m</th>
-        <th>Effective m</th><th>Stock</th><th>Qty</th><th>Cost USD</th>
+        <th>Effective m</th><th>Stock</th><th>Qty</th><th>Cost NZD</th>
       </tr></thead>
       <tbody>${rows.map((row) => `<tr>
         <td>${clean(row.category)}</td><td>${clean(row.element)}</td>
@@ -69,6 +69,6 @@ export class BomPanel {
         <td>${clean(row.treatment)}</td><td>${row.plies}</td>
         <td>${row.total_length_m}</td><td>${row.total_effective_length_m}</td>
         <td>${row.stock_length_m} m</td><td>${row.qty}</td>
-        <td>${row.total_cost_usd.toFixed(2)}</td></tr>`).join("")}</tbody>`;
+        <td>${row.total_cost_nzd.toFixed(2)}</td></tr>`).join("")}</tbody>`;
   }
 }

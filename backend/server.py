@@ -125,7 +125,7 @@ async def get_pricing() -> dict:
         "key": item["key"],
         "category": item["category"],
         "default_size": item["default_size_mm"],
-        "usd_per_linear_metre": item["default_usd_per_lm"],
+        "nzd_per_linear_metre": item["default_nzd_per_lm"],
         "confidence": item["price_confidence"],
         "source_name": item["price_source_name"],
         "source_date": item["price_source_date"],
@@ -186,9 +186,9 @@ def _preview_response(elements: list[dict], warnings: list[str]) -> dict:
             "temporary": True, "member_count": len(prepared),
             "lineal_metres": round(sum(
                 e["length_mm"] * e["plies"] for e in prepared) / 1000, 2),
-            "estimated_cost_usd": round(sum(
+            "estimated_cost_nzd": round(sum(
                 e["length_mm"] * e["plies"]
-                * (e["unit_price_usd_per_lm"] or 0)
+                * (e["unit_price_nzd_per_lm"] or 0)
                 for e in prepared) / 1000, 2),
             "warnings": list(dict.fromkeys(warnings)),
         },

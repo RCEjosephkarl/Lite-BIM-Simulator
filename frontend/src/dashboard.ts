@@ -59,7 +59,7 @@ export class Dashboard {
       ["Total elements", summary.total_elements.toLocaleString()],
       ["Wall frame", `${summary.wall_frame_lineal_m.toFixed(1)} m`],
       ["Roof / truss", `${summary.roof_truss_lineal_m.toFixed(1)} m`],
-      ["Estimated cost", `US$${summary.estimated_material_cost_usd
+      ["Estimated cost", `NZ$${summary.estimated_material_cost_nzd
         .toLocaleString(undefined, { maximumFractionDigits: 0 })}`],
       ["Warnings", String(summary.warning_count)],
     ];

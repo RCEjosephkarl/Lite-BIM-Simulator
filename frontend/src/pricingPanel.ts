@@ -23,14 +23,14 @@ export class PricingPanel {
   private render(): void {
     this.root.querySelector("#pricing-table")!.innerHTML = `
       <thead><tr><th>Material</th><th>Category</th><th>Default size</th>
-        <th>USD / lm</th><th>Session override</th><th>Confidence</th>
+        <th>NZD / lm</th><th>Session override</th><th>Confidence</th>
         <th>Source</th><th>Date</th><th>Notes</th></tr></thead>
       <tbody>${this.rows.map((row) => `<tr>
         <td>${row.material}</td><td>${row.category}</td>
-        <td>${row.default_size}</td><td>${row.usd_per_linear_metre.toFixed(2)}</td>
+        <td>${row.default_size}</td><td>${row.nzd_per_linear_metre.toFixed(2)}</td>
         <td><input class="price-override" data-key="${row.key}" type="number"
           min="0" step="0.01" value="${this.overrides[row.key] ?? ""}"
-          placeholder="${row.usd_per_linear_metre.toFixed(2)}"></td>
+          placeholder="${row.nzd_per_linear_metre.toFixed(2)}"></td>
         <td>${row.confidence}</td>
         <td><a href="${row.source_url}" target="_blank" rel="noopener">${row.source_name}</a></td>
         <td>${row.source_date}</td><td>${row.notes}</td></tr>`).join("")}</tbody>`;

@@ -1,13 +1,114 @@
 # TimberBIM Lite — Development Report
 
-**Latest:** 2026-06-16 · **Standard referenced:** NZS 3604:2011 ·
+**Latest:** 2026-06-24 · **Standard referenced:** NZS 3604:2011 ·
 **Status:** work in progress
 
-> This report leads with the **most heavily-prompted, most-iterated
-> development** — the dashboard, imports, manual framing and UI-layout work
-> (v2.0 → v2.1) — because that is where most of the recent effort has gone. The
-> earlier feature history (v1.1 roof/exposure rules, v1.2 stud-design overrides
-> and cost estimating) follows below for completeness.
+> This report leads with the **newest development** (v2.2 — the PDF default
+> plan, multi-storey synthesis and NZD costing), followed by the previously
+> most-iterated work (the dashboard, imports, manual framing and UI-layout work
+> in v2.0 → v2.1). The earlier feature history (v1.1 roof/exposure rules, v1.2
+> stud-design overrides and cost estimating) follows below for completeness.
+
+---
+
+# 🟢 v2.2 — PDF default plan, multi-storey synthesis & NZD costing (2026-06-24)
+
+Three connected changes: the default building now comes from a real
+architectural drawing set, multi-storey models are synthesized in a specific
+stacking order, and all costing is reported in New Zealand dollars.
+
+## 1. New default figure digitized from the sample plan set
+
+The default model — the figure that loads on screen — is now digitized from
+[`examples/sample_building_plans.pdf`](examples/sample_building_plans.pdf), a
+12-sheet "Proposed home" consent-drawing set (FLOORPLAN sheet at 1:100,
+Building Area **183.15 m²** / 178.7 m² over frame). It replaces the previous
+70′ × 60′ stand-in plan.
+
+The new house is a single-storey, light timber-framed dwelling on a
+**~18.68 m (E-W) × ~11.17 m (N-S)** footprint:
+
+- **GARAGE** in the south-east corner with a **4.5 m sectional door** on the
+  south wall;
+- **BEDROOM 2 / BEDROOM 3 / WC** above the garage on the east side;
+- a central **LOUNGE / BATH / STORE / ENTRY** core;
+- **BEDROOM 1 / ENS / WIR** to the centre-north;
+- open-plan **KITCHEN / DINING / LIVING** on the west;
+- an outdoor **COVERED AREA** notched into the north-west corner, carried on
+  posts under the oversailing main roof;
+- a **28° trussed roof** (trusses @ 900 c/c — the roof pitch was updated from
+  25° to match the drawings).
+
+`backend/geometry.py` was rewritten around this plan. It now authors the
+footprint, exterior walls (with the garage door, entry, sliders and windows),
+interior partitions, roof rectangles, slabs and the covered area **in
+millimetres** (a `_f()` helper expresses them in the legacy "feet" unit the
+framing generator still multiplies by, so `ft(_f(mm)) == mm`). This is a
+*simplified* digitization for the lite simulator — the footprint, major
+openings and room partitions follow the PDF, but it is not a measured
+reproduction; the file says so and points back to the drawings.
+
+## 2. Multi-storey synthesis — sample plan on top, newer floors below
+
+NZS 3604 floor levels 2 and 3 have no detailed drawing, so they are
+*synthesized*. The rule (per request): **the digitized sample/ground plan is
+placed on the topmost level, and the additional "newer" floors are stacked
+underneath it.** Concretely, in `framing.generate()`:
+
+- the storey where `s == storeys` uses the full ground plan (with the garage),
+  is labelled with the `G-…` segment prefix, and carries the ceiling and roof;
+- every storey below it uses the synthesized reduced plan (footprint minus the
+  garage bay, auto-placed windows) and gets `L1-…`, `L2-…` prefixes;
+- the inter-storey platform directly under the top storey uses the full
+  footprint; the lower platforms use the reduced one.
+
+Single-storey models are unchanged (the ground plan is both top and bottom, so
+the default still reads `G-EXT-001…`). Verified on a 3-storey model: storeys
+1-2 carry `L1`/`L2` prefixes, storey 3 (top) carries `G` plus the 4.5 m garage
+door and the roof.
+
+## 3. Costing revised from USD to native NZD (valuation 2026-06-23)
+
+The catalogue prices were always sourced from public **NZ retail listings in
+NZD** and then converted to USD at a dated FX rate. v2.2 **drops the
+conversion** and reports the native NZD figures directly, re-dated to the
+**2026-06-23** valuation. The "FX rate to NZD" is therefore 1.0 (recorded for
+provenance, no conversion applied). Every `*_usd*` identifier, column, JSON key
+and UI label was renamed to `*_nzd*` / NZ\$, end to end:
+
+| Layer | Change |
+|---|---|
+| `backend/materials.py` | `default_nzd_per_lm` / `size_prices_nzd_per_lm`, `_nzd()` now identity-rounds (no FX), `fx_rate_to_nzd = 1.0`, dates → 2026-06-23, NZD docstring/disclaimers |
+| `backend/schema.sql` | `elements.unit_price_nzd_per_lm`, `bom` view `total_cost_nzd` |
+| `backend/db.py` | `unit_price_nzd_per_lm`, `cost_nzd`, `grand_total_nzd`, `estimated_cost_nzd`, cost-summary/BOM `currency: "NZD"`, NZD disclaimer |
+| `backend/server.py` | `nzd_per_linear_metre`, `estimated_cost_nzd` |
+| `frontend/src/*` | `total_cost_nzd`, `unit_price_nzd_per_lm`, `grand_total_nzd`, table headers **NZD / lm** / **Cost NZD**, **NZ\$** prefixes, `en-NZ` number grouping |
+| `backend/test_smoke.py` | NZD field names + `currency == "NZD"` |
+
+A regenerated default model totals about **NZ\$13,522** (SG8 throughout); the
+90×45 SG8 stud unit price reads **NZ\$6.07/lm** (was US\$3.52 after the old
+0.5795 conversion).
+
+## Verification (v2.2)
+
+- `python framing.py` — 5 config permutations (1/2/3-storey, hip, wind/snow,
+  overrides), **0 zero-length members**; default single-storey = 840 elements
+  / 16 segments. 3-storey confirms the `G`-on-top stacking.
+- `python -m pytest test_smoke.py -q` — **17 passed** (default model, override
+  precedence, plies isolation, BOM cost ×plies, materials/cost-summary
+  endpoints now asserting NZD, clamp/ignore warnings).
+- `tsc && vite build` — type-check and bundle clean.
+- Default `model.db` rebuilt; `/api/cost-summary` reports `currency: "NZD"`.
+
+## Engineering & cost disclaimer (v2.2)
+
+The digitized plan is a simplified reading of the sample drawings, not a
+measured model — verify any member against the consent drawings, NZS 3604:2011
+or specific engineering design. The multi-storey synthesis (garage and ground
+plan placed on the topmost level) is a generation convenience, not an
+architectural recommendation. NZD prices are indicative, GST-inclusive retail
+estimates as at 2026-06-23 — not quotes; they exclude delivery, fixings,
+labour and waste.
 
 ---
 
@@ -301,6 +402,10 @@ with a warning (stale overrides survive in the URL when storeys change —
 harmless and reversible).
 
 ## 7. USD material cost estimating
+
+> **Superseded by v2.2:** costing now reports native **NZD** (no FX
+> conversion), re-dated to 2026-06-23 — see the v2.2 section at the top. The
+> USD mechanics below are the original v1.2 design, kept for history.
 
 `backend/materials.py` is the pricing catalogue — one entry per material
 with key, display name, category (`sawn_timber|glulam|lvl`), typical/default

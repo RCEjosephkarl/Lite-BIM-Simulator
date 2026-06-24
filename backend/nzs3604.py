@@ -121,7 +121,7 @@ RIDGE_SIZE = (190, 45)         # cl. 10.2.1.6
 RIDGE_REF = "cl. 10.2.1.6"
 HIP_SIZE = (190, 45)           # hip/valley rafters one size deeper, cl. 10.2.1.7
 HIP_REF = "cl. 10.2.1.7"
-ROOF_PITCH_DEG = 25.0
+ROOF_PITCH_DEG = 28.0          # sample plan roof pitch (28°, trusses @ 900 c/c)
 EAVE_OVERHANG = 450
 
 # Gable-end studs (support roof framing at gable ends, cl. 8.5 / 10.4).

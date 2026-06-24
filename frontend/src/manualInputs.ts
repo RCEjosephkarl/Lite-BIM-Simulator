@@ -184,8 +184,8 @@ class ManualWallPanel {
       this.previewSignature = JSON.stringify(input);
       this.root.querySelector<HTMLButtonElement>("#wall-commit")!.disabled = false;
       this.result(`Preview: ${result.metadata.member_count} members, ` +
-        `${result.metadata.lineal_metres} m, estimated US$` +
-        `${result.metadata.estimated_cost_usd.toFixed(2)}.`, "success");
+        `${result.metadata.lineal_metres} m, estimated NZ$` +
+        `${result.metadata.estimated_cost_nzd.toFixed(2)}.`, "success");
       this.onPreview(result);
     } catch (error) { this.result((error as Error).message, "error"); }
   }
@@ -357,7 +357,7 @@ L,R,bottom_chord,90x45,SG8</textarea></label>
       this.root.querySelector<HTMLButtonElement>("#truss-commit")!.disabled = false;
       this.result(`Preview: ${input.quantity} trusses, ` +
         `${result.metadata.member_count} members, ${result.metadata.lineal_metres} m, ` +
-        `estimated US$${result.metadata.estimated_cost_usd.toFixed(2)}.`, "success");
+        `estimated NZ$${result.metadata.estimated_cost_nzd.toFixed(2)}.`, "success");
       this.onPreview(result);
     } catch (error) { this.result((error as Error).message, "error"); }
   }

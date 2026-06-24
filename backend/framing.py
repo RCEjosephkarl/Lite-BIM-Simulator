@@ -615,6 +615,10 @@ def frame_hip_roof(els: list, rect_ft, storey: int, z: float,
 # ---------------------------------------------------------------------------
 
 def frame_porch(els: list, note: str = "") -> None:
+    """Covered-area (NW) posts + edge beam carrying the oversailing main-roof
+    eave. The bay sits under the main roof's north overhang, so no separate
+    skillion is framed (roof planes are not valley-jointed in this lite scope).
+    """
     beam_z1, beam_z2 = 2300, 2300 + nz.PORCH_BEAM_SIZE[0]
     py = g.ft(g.PORCH_POST_Y_FT)
     for px in g.PORCH_POST_XS_FT:
@@ -625,17 +629,6 @@ def frame_porch(els: list, note: str = "") -> None:
         _el(els, "beam", 1, "2/190x45", b - a, 90, nz.PORCH_BEAM_SIZE[0],
             (a + b) / 2, py, (beam_z1 + beam_z2) / 2, 0, 0,
             treatment=nz.OUTDOOR_TREATMENT, note=note)
-    # skillion rafters back to the house wall
-    wall_y, wall_z = g.ft(g.PORCH_BACK_Y_FT), 2700
-    dy, dz = wall_y - py, wall_z - beam_z2
-    rlen = math.hypot(dy, dz)
-    pitch = math.atan2(dz, dy)
-    x = x1 + 150
-    while x <= x2 - 100:
-        _el(els, "rafter", 1, "140x45", rlen, 45, 140, x, (py + wall_y) / 2,
-            (beam_z2 + wall_z) / 2, math.pi / 2, pitch,
-            treatment=nz.OUTDOOR_TREATMENT, note=note)
-        x += nz.RAFTER_SPACING
 
 
 def slabs(els: list) -> None:
@@ -672,17 +665,21 @@ def generate(cfg: ModelConfig | None = None) -> GenerateResult:
     for s in range(1, storeys + 1):
         z = (s - 1) * nz.STOREY_RISE
         nzs_default = nz.stud_spacing(s, storeys, cfg.wind_zone)
-        if s == 1:
+        # The digitized sample/ground plan always sits on the TOPMOST storey;
+        # extra storeys for level 2/3 are synthesized as "newer" floors stacked
+        # underneath it (see REPORT v2.2). Single-storey models are unchanged.
+        is_ground = s == storeys
+        if is_ground:
             walls = g.ground_exterior_walls() + g.ground_interior_walls()
         else:
             walls = g.upper_exterior_walls() + g.upper_interior_walls()
         counters = {True: 0, False: 0}
         for w in walls:
             counters[w.exterior] += 1
-            prefix = "G" if s == 1 else f"L{s}"
+            prefix = "G" if is_ground else f"L{s}"
             kind = "EXT" if w.exterior else "INT"
             seg_id = f"{prefix}-{kind}-{counters[w.exterior]:03d}"
-            label = (f"L{s} {'Exterior' if w.exterior else 'Interior'} "
+            label = (f"{prefix} {'Exterior' if w.exterior else 'Interior'} "
                      f"Wall {counters[w.exterior]:02d}")
             mat_key = cfg.effective_stud_material(s, seg_id)
             spacing = cfg.effective_stud_spacing(s, seg_id, nzs_default)
@@ -700,14 +697,17 @@ def generate(cfg: ModelConfig | None = None) -> GenerateResult:
                        material=materials.display_name(mat_key), plies=plies,
                        segment_id=seg_id, segment_label=label)
         if s < storeys:  # platform for the storey above
-            frame_floor(els, upper_poly, s, z + WALL_H, note)
+            # the topmost (sample/ground) storey carries the full footprint
+            # incl. the garage; lower synthesized floors use the reduced one
+            platform_poly = full_poly if s + 1 == storeys else upper_poly
+            frame_floor(els, platform_poly, s, z + WALL_H, note)
 
     top_z = (storeys - 1) * nz.STOREY_RISE + WALL_H
-    top_poly = full_poly if storeys == 1 else upper_poly
+    top_poly = full_poly  # the sample/ground plan is always the topmost storey
     frame_ceiling(els, top_poly, storeys, top_z, note)
 
     roof_rects = [(rect, storeys, top_z) for rect in g.MAIN_ROOF_FT]
-    roof_rects.append((g.GARAGE_ROOF_FT, 1, WALL_H))
+    roof_rects.append((g.GARAGE_ROOF_FT, storeys, top_z))
     for rect, st, zz in roof_rects:
         if cfg.roof == "hip":
             frame_hip_roof(els, rect, st, zz, rspacing, note)

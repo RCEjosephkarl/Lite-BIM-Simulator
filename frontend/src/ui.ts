@@ -452,10 +452,10 @@ export class Panel {
       return t && t.category !== "concrete";
     });
     const totalLm = timber.reduce((s, el) => s + el.length_mm, 0) / 1000;
-    const cost = model.meta.cost_summary?.grand_total_usd;
+    const cost = model.meta.cost_summary?.grand_total_nzd;
     this.statsEl.textContent =
       `${timber.length} timber members · ${totalLm.toFixed(0)} lineal metres` +
-      (cost ? ` · est. US$${cost.toLocaleString("en-US", {
+      (cost ? ` · est. NZ$${cost.toLocaleString("en-NZ", {
         maximumFractionDigits: 0 })} materials` : "");
 
     const m = model.meta;
@@ -512,7 +512,7 @@ export class Panel {
       this.infoEl.innerHTML = "Click a member in the 3D view.";
       return;
     }
-    const price = el.unit_price_usd_per_lm;
+    const price = el.unit_price_nzd_per_lm;
     const estCost = price !== null
       ? (el.length_mm / 1000) * el.plies * price : null;
     const rows: [string, string][] = [
@@ -534,8 +534,8 @@ export class Panel {
       ["Confidence", el.confidence === null ? "—" : el.confidence.toFixed(2)],
       ["Length", `${(el.length_mm / 1000).toFixed(2)} m`],
       ["Storey", String(el.storey)],
-      ["Unit price", price !== null ? `US$${price.toFixed(2)}/lm` : "—"],
-      ["Est. cost", estCost !== null ? `US$${estCost.toFixed(2)}` : "—"],
+      ["Unit price", price !== null ? `NZ$${price.toFixed(2)}/lm` : "—"],
+      ["Est. cost", estCost !== null ? `NZ$${estCost.toFixed(2)}` : "—"],
       ["NZS 3604:2011", type.nzs_ref],
     ];
     const source = el.price_confidence

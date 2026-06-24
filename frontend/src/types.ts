@@ -29,7 +29,7 @@ export interface BimElement {
   segment_id: string; // e.g. 'G-EXT-001' ('' for non-wall members)
   segment_label: string;
   stud_spacing_mm: number | null; // effective wall stud centres
-  unit_price_usd_per_lm: number | null; // estimating data
+  unit_price_nzd_per_lm: number | null; // estimating data
   price_confidence: string; // 'high' | 'medium' | 'low' | ''
   price_source_name: string;
   price_source_url: string;
@@ -109,13 +109,13 @@ export interface FrameSegment {
 }
 
 export interface CostGroup {
-  cost_usd: number;
+  cost_nzd: number;
   [key: string]: string | number | boolean | null;
 }
 
 export interface CostSummary {
   currency: string;
-  grand_total_usd: number;
+  grand_total_nzd: number;
   by_material: CostGroup[];
   by_storey: CostGroup[];
   by_segment: CostGroup[];
@@ -161,7 +161,7 @@ export interface DashboardSummary {
   total_elements: number;
   wall_frame_lineal_m: number;
   roof_truss_lineal_m: number;
-  estimated_material_cost_usd: number;
+  estimated_material_cost_nzd: number;
   warning_count: number;
 }
 
@@ -180,9 +180,9 @@ export interface BomRow {
   total_length_m: number;
   total_effective_length_m: number;
   effective_length_m: number;
-  unit_price_usd_per_lm: number | null;
-  total_cost_usd: number;
-  estimated_cost_usd: number;
+  unit_price_nzd_per_lm: number | null;
+  total_cost_nzd: number;
+  estimated_cost_nzd: number;
   price_confidence: string;
   price_source_name: string;
   price_source_url: string;
@@ -196,7 +196,7 @@ export interface PricingRow {
   key: string;
   category: string;
   default_size: string;
-  usd_per_linear_metre: number;
+  nzd_per_linear_metre: number;
   confidence: string;
   source_name: string;
   source_date: string;
@@ -325,7 +325,7 @@ export interface PreviewResult {
     temporary: boolean;
     member_count: number;
     lineal_metres: number;
-    estimated_cost_usd: number;
+    estimated_cost_nzd: number;
     warnings: string[];
   };
 }

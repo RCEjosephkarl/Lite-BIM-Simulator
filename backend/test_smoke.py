@@ -149,8 +149,8 @@ def test_bom_cost_multiplies_by_plies():
         total = float(x["total_length_m"])
         eff = float(x["total_effective_length_m"])
         assert eff == pytest.approx(2 * total, abs=0.02)
-        assert float(x["total_cost_usd"]) == pytest.approx(
-            eff * float(x["unit_price_usd_per_lm"]), abs=0.25)
+        assert float(x["total_cost_nzd"]) == pytest.approx(
+            eff * float(x["unit_price_nzd_per_lm"]), abs=0.25)
     lintels = [x for x in rows if x["element"] == "Lintel"]
     assert lintels
     assert all(not x["size"].startswith("2/2/") for x in lintels)
@@ -167,27 +167,27 @@ def test_materials_endpoint_complete():
     for m in mats.values():
         assert m["display_name"]
         assert m["category"] in ("sawn_timber", "glulam", "lvl")
-        assert m["default_usd_per_lm"] > 0
+        assert m["default_nzd_per_lm"] > 0
         assert m["price_confidence"] in ("high", "medium", "low")
         for f in ("price_source_name", "price_source_url",
                   "price_source_date", "source_currency", "source_unit",
                   "fx_source", "fx_date", "pricing_notes"):
             assert m[f], f"{m['key']}.{f} empty"
-        assert m["source_price"] > 0 and m["fx_rate_to_usd"] > 0
+        assert m["source_price"] > 0 and m["fx_rate_to_nzd"] > 0
     assert cat["disclaimers"]
 
 
 def test_cost_summary_consistent():
     m = get_model()
     cs = m["meta"]["cost_summary"]
-    assert cs["currency"] == "USD"
-    assert cs["grand_total_usd"] > 0
-    by_mat = sum(x["cost_usd"] for x in cs["by_material"])
-    assert by_mat == pytest.approx(cs["grand_total_usd"], abs=0.5)
+    assert cs["currency"] == "NZD"
+    assert cs["grand_total_nzd"] > 0
+    by_mat = sum(x["cost_nzd"] for x in cs["by_material"])
+    assert by_mat == pytest.approx(cs["grand_total_nzd"], abs=0.5)
     assert cs["by_segment"] and cs["by_storey"] and cs["by_element"]
     r = client.get("/api/cost-summary")
     assert r.status_code == 200
-    assert r.json()["grand_total_usd"] == cs["grand_total_usd"]
+    assert r.json()["grand_total_nzd"] == cs["grand_total_nzd"]
 
 
 def test_invalid_inputs_warn_not_fail():
@@ -211,9 +211,9 @@ def test_invalid_inputs_warn_not_fail():
 
 
 def test_unit_price_handles_lintel_prefix_and_sed():
-    base, *_ = materials.unit_price_usd_per_lm("sg8", "140x45")
-    double, *_ = materials.unit_price_usd_per_lm("sg8", "2/140x45")
-    sed, *_ = materials.unit_price_usd_per_lm("sg8", "2/290x45 (SED)")
+    base, *_ = materials.unit_price_nzd_per_lm("sg8", "140x45")
+    double, *_ = materials.unit_price_nzd_per_lm("sg8", "2/140x45")
+    sed, *_ = materials.unit_price_nzd_per_lm("sg8", "2/290x45 (SED)")
     assert double == pytest.approx(2 * base, abs=0.01)
     assert sed > 0
 

@@ -12,21 +12,28 @@
 
 ## The story so far
 
-It starts with a drawing. A 70′ × 60′ single-storey floor plan — garage, left
-wing, centre core, right wing, patio, covered porch — the kind of light
-timber-framed residential building that **NZS 3604:2011 *Timber-framed
-buildings*** is written for.
+It starts with a drawing. The default building is digitized from
+[`examples/sample_building_plans.pdf`](examples/sample_building_plans.pdf) — a
+12-sheet "Proposed home" consent-drawing set (FLOORPLAN at 1:100, Building Area
+183.15 m²). It is a single-storey, light timber-framed house on a
+~18.68 m × ~11.17 m footprint: an attached **garage** (4.5 m door) in the
+south-east, **bedrooms 2/3** above it, a central **lounge/bath/entry** core,
+**bedroom 1/ens/wir** to the north, open-plan **kitchen/dining/living** on the
+west, an outdoor **covered area** in the north-west corner, and a **28°
+trussed roof** (trusses @ 900 c/c) — the kind of building that **NZS 3604:2011
+*Timber-framed buildings*** is written for.
 
 The question this project keeps asking is: *how far can we take that one
 drawing as data?*
 
-**First, the drawing becomes geometry.** The footprint, walls and openings are
-digitized into `backend/geometry.py`. Nothing intelligent yet — just
-coordinates standing in for lines on paper.
+**First, the drawing becomes geometry.** The footprint, walls and openings from
+the PDF are digitized into `backend/geometry.py` (a *simplified* reading, not a
+measured reproduction). Nothing intelligent yet — just coordinates standing in
+for lines on paper.
 
 **Then the geometry becomes a building.** `backend/framing.py` walks that plan
 and grows a frame on it: studs, plates, nogs, lintels, joists, rafters,
-trusses — roughly 1,100 to 3,600 members depending on how the building is
+trusses — roughly 840 to 2,700 members depending on how the building is
 configured. Every member is generated against a simplified reading of
 NZS 3604: stud spacing from Table 8.2, lintels by span from Table 8.9, rafters
 from Table 10.1, treatments from NZS 3640. Each piece *remembers the clause it
@@ -38,18 +45,21 @@ zone (or hand it a design wind speed and let it derive the zone from
 Table 5.4) and the wall studs tighten from 600 → 480 → 400 centres. Tell it the
 snow zone is N3 and the rafters pull in from 900 → 600 centres. Ask for a hip
 roof instead of a gable and it regenerates the ridge, hip rafters to each eave
-corner, and the jack rafters that shorten toward the corners. Anything outside
-the standard's scope — a 3rd storey, >55 m/s wind, >2.0 kPa snow — is flagged
-**SED** ("specific engineering design") rather than silently guessed.
+corner, and the jack rafters that shorten toward the corners. Ask for floor
+level 2 or 3 — which the drawing set doesn't cover — and it *synthesizes* them:
+the digitized ground plan stays on the **topmost** level and the new floors are
+stacked **underneath** it. Anything outside the standard's scope — a 3rd
+storey, >55 m/s wind, >2.0 kPa snow — is flagged **SED** ("specific engineering
+design") rather than silently guessed.
 
 **Then the building becomes a spreadsheet.** Every member is a row in SQLite
 (`backend/schema.sql`) carrying its function, size, grade, treatment, length,
 position, material, plies and price. A SQL `bom` view aggregates the timber
 (concrete slabs excluded), rounds to stock lengths, and `GET /api/bom.csv`
 hands you a bill of materials. `backend/materials.py` attaches indicative
-USD-per-lineal-metre costs sourced from public NZ retail listings, converted
-through a dated FX rate, each figure carrying a confidence level and a link
-back to where it came from.
+**NZD-per-lineal-metre** costs taken from public NZ retail listings in their
+native currency (GST-inclusive, valuation 2026-06-23 — no FX conversion), each
+figure carrying a confidence level and a link back to where it came from.
 
 **Then the building becomes editable.** Beyond the generated sample you can
 feed it your own data: a structured CSV mixing wall / opening / truss rows
@@ -75,11 +85,11 @@ boundary and a promise, not a brain.
 
 | Stage | Status |
 |---|---|
-| Floor plan → geometry | working (single hard-coded sample plan) |
+| Floor plan → geometry | working (digitized from `examples/sample_building_plans.pdf`) |
 | Geometry → NZS 3604 framing | working, *simplified* common-case rules |
 | Wind / snow / roof-style driven generation | working |
 | SQL element store + timber BOM | working |
-| USD cost estimating with provenance | working, *indicative* retail snapshots |
+| NZD cost estimating with provenance | working, *indicative* retail snapshots |
 | CSV import + manual wall/truss entry | working, preview-before-commit |
 | Dashboard + hover/pin sidebar UI | working (most recently reworked — see REPORT) |
 | Optional AI plan reading | **scaffold only — no trained model** |
@@ -89,12 +99,12 @@ boundary and a promise, not a brain.
 
 | # | Capability | How |
 |---|---|---|
-| 1 | 3D rendered view | Three.js `InstancedMesh` per element function (~1,100–3,600 members) |
+| 1 | 3D rendered view | Three.js `InstancedMesh` per element function (~840–2,700 members) |
 | 2 | Rotate / pan / zoom + **auto-rotate** | `OrbitControls`; *View → Auto-rotate model* toggles a slow turntable |
 | 3 | Colour / material / function modes | **Function**, **Material** (SG8 H1.2 vs H3.2 vs concrete), **Realistic** timber tones; per-category layer toggles; click any member for its properties |
 | 4 | NZS 3604:2011 rules engine | `backend/nzs3604.py`: stud spacing (Table 8.2), plates/nogs (cl. 8.5.2), lintels (Table 8.9), floor/ceiling joists (Tables 7.1 / 10.3), rafters (Table 10.1), treatments (NZS 3640) — every element stores its clause |
 | 5 | CSV bill of materials | Timber only, aggregated by the SQL `bom` view, stock lengths rounded to 0.3 m → `GET /api/bom.csv` |
-| 6 | Sample shape | Footprint, walls and openings from the reference floor plan (`backend/geometry.py`) |
+| 6 | Sample shape | Footprint, walls and openings digitized from `examples/sample_building_plans.pdf` (`backend/geometry.py`) |
 | 7 | Roof style: gable or hip | Hip framing builds a shortened ridge, hip rafters to each eave corner (cl. 10.2.1.7), jack and common rafters |
 | 8 | Wind & snow driven spacing | Wind zone or design wind speed → stud centres 600/480/400; snow zone N0–N5 → rafter centres 900/600; out-of-scope inputs flagged **SED** |
 | 9 | Customizable gable-end studs | 300–1200 mm centres, filling each gable triangle (gable roofs only) |
@@ -102,7 +112,7 @@ boundary and a promise, not a brain.
 | 11 | Stud spacing by scope | Presets 300–1200 mm or custom; NZS default kept, overrides flagged *"verify by design/NZS 3604"* |
 | 12 | Wall-frame plies by scope | 1–6 plies for `frame_wall()` members; visuals widen to plies × 45 mm; BOM length and cost scale with plies |
 | 13 | Frame segment identity | Deterministic IDs (`G-EXT-001`…) on every wall element; `meta.frame_segments` lists each segment's effective material/spacing/plies |
-| 14 | USD cost estimating | Sourced catalogue (`backend/materials.py`) with provenance, FX rate + date, confidence levels |
+| 14 | NZD cost estimating | Sourced catalogue (`backend/materials.py`) with provenance, valuation date (2026-06-23), confidence levels |
 | 15 | Hover/pin input sidebar + floating dashboard | Icon-only rail (tooltips on hover, pinnable) for input panels; the read-only summary lives in a separate collapsible HUD over the 3D viewport so output never overlaps input |
 | 16 | Structured CSV plan import | Mixed wall/opening/truss rows, unit normalization, editable validation review, temporary preview, then append/replace commit |
 | 17 | Manual framing inputs | Preview-before-commit wall and truss forms, openings, repeated/custom trusses, local drafts, source tracking |
@@ -213,9 +223,9 @@ acceptance before commit.
 | Endpoint | Description |
 |---|---|
 | `GET /api/model` | Regenerates the SQLite model and returns all elements as JSON. Query params: `storeys` 1–3 · `roof` gable\|hip · `wind_zone` low…extra high · `wind_speed` m/s (overrides `wind_zone`) · `snow_zone` N0–N5 · `gable_spacing` 300–1200 mm. **Wall stud design:** `stud_material_overall` · `stud_spacing_overall` · `wall_plies_overall` plus per-level / per-segment JSON-object params. Invalid values clamp/ignore with `meta.warnings`; response includes `meta.frame_segments` and `meta.cost_summary` |
-| `GET /api/bom.csv` | Bill of materials (timber only) from the SQL `bom` view, including material, plies, effective length, USD unit price + cost, confidence and source, NZS clause ref |
-| `GET /api/materials` | Stud material catalogue: sizes, USD/lm prices, source/date, FX rate, confidence, assumptions |
-| `GET /api/cost-summary` | Estimated USD totals: grand total and breakdowns by material, storey, segment and element |
+| `GET /api/bom.csv` | Bill of materials (timber only) from the SQL `bom` view, including material, plies, effective length, NZD unit price + cost, confidence and source, NZS clause ref |
+| `GET /api/materials` | Stud material catalogue: sizes, NZD/lm prices, source/date, confidence, assumptions |
+| `GET /api/cost-summary` | Estimated NZD totals: grand total and breakdowns by material, storey, segment and element |
 | `GET /api/dashboard` | Storeys, zones, element/length/cost/warning summary |
 | `GET /api/bom.json` | Grouped in-app BOM rows |
 | `GET /api/pricing` | Material price rows and source metadata |
@@ -251,23 +261,24 @@ frontend instances a unit cube per row.
 1. **Source** — public NZ retail listings (Kiwi Timber Supplies per-metre
    prices; Mitre 10 category prices for Prolam/glulam), recorded with name, URL
    and date. Retail prices include 15% NZ GST.
-2. **Normalisation** — everything converted to **USD per lineal metre**;
-   missing sizes scaled linearly by cross-section area (noted in
-   `pricing_notes`); `2/140x45`-style sizes price at 2× the single-section rate.
-3. **FX** — NZD→USD mid-market rate with source and date
-   (0.5795, xe.com / exchange-rates.org, 2026-06-11).
-4. **Confidence** — `high` = exact product price · `medium` = brand, size
+2. **Currency** — figures are reported in their **native New Zealand dollars
+   (NZD per lineal metre)**; no FX conversion is applied (the "rate to NZD" is
+   1.0), valuation date **2026-06-23**. Missing sizes are scaled linearly by
+   cross-section area (noted in `pricing_notes`); `2/140x45`-style sizes price
+   at 2× the single-section rate.
+3. **Confidence** — `high` = exact product price · `medium` = brand, size
    extrapolated · `low` = category estimate.
-5. **Cost** — `costed_lm = total_length_m × plies`;
-   `cost = costed_lm × unit_price_usd_per_lm`.
+4. **Cost** — `costed_lm = total_length_m × plies`;
+   `cost = costed_lm × unit_price_nzd_per_lm`.
 
-**Cost disclaimer:** all prices are *indicative supply-only estimating data*,
-not quotes — they exclude delivery, fixings, labour and waste, and go stale;
-check `/api/materials` for each figure's source and date.
+**Cost disclaimer:** all prices are *indicative supply-only estimating data* in
+NZD, not quotes — they exclude delivery, fixings, labour and waste, and go
+stale; check `/api/materials` for each figure's source and date.
 
-See **[REPORT.md](REPORT.md)** for the development report — including the most
-recent and most heavily-iterated work (the dashboard, imports/manual framing
-and UI layout), rules, member-generation logic and verification results.
+See **[REPORT.md](REPORT.md)** for the development report — including the newest
+work (v2.2 — the PDF default plan, multi-storey synthesis and NZD costing) and
+the earlier dashboard, imports/manual framing and UI-layout iterations, rules,
+member-generation logic and verification results.
 
 ## Disclaimer
 
