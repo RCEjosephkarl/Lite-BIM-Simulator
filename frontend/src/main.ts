@@ -22,7 +22,7 @@ let params: ModelParams = { ...DEFAULT_PARAMS, ...paramsFromUrl() };
 let currentModel: BimModel | null = null;
 let previewModel: BimModel | null = null;
 
-const dashboard = new Dashboard(document.getElementById("dashboard-hud")!);
+const dashboard = new Dashboard(sidebar.getSection("dashboard"));
 const bomPanel = new BomPanel(sidebar.getSection("bom"));
 const pricingPanel = new PricingPanel(sidebar.getSection("pricing"));
 const importsPanel = new ImportsPanel(sidebar.getSection("imports"));

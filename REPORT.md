@@ -1,121 +1,8 @@
-# TimberBIM Lite — Development Report
+# TimberBIM Lite — Feature Update Report
 
-**Latest:** 2026-06-16 · **Standard referenced:** NZS 3604:2011 ·
-**Status:** work in progress
+**Date:** 2026-06-10 · **Version:** 1.1 · **Standard referenced:** NZS 3604:2011
 
-> This report leads with the **most heavily-prompted, most-iterated
-> development** — the dashboard, imports, manual framing and UI-layout work
-> (v2.0 → v2.1) — because that is where most of the recent effort has gone. The
-> earlier feature history (v1.1 roof/exposure rules, v1.2 stud-design overrides
-> and cost estimating) follows below for completeness.
-
----
-
-# 🟢 Development focus — Dashboard, Imports, Manual Framing & UI layout (v2.0–v2.1)
-
-This is the largest and most-iterated slice of the project to date: it turned a
-read-only 3D viewer into an interactive workspace where users feed in their own
-geometry, review it before it touches the model, and read the results back from
-a dedicated dashboard. It also absorbed the most prompt iterations — the UI
-layout in particular went through a follow-up fix (v2.1) after the first cut
-(v2.0) crammed output into the input sidebar and let nav labels paint over
-content.
-
-## What was built (v2.0)
-
-**Interactive sidebar + dashboard.** A hover-expand, keyboard-accessible left
-sidebar with persisted pin state, plus a dashboard summary, grouped BOM table,
-pricing provenance and session price overrides.
-
-**Structured CSV import.** Mixed-row (`wall` / `opening` / `truss`) CSV
-validation, editable review, temporary magenta preview, and append / replace
-commit modes — validation never mutates the model, invalid rows stay editable.
-
-**Manual framing.** Manual wall-frame and truss generators with
-preview-before-commit, `localStorage` drafts, repeated/custom trusses, pricing
-and warnings.
-
-**Provenance & lifecycle.** Element source / source-id / editability /
-confidence metadata and import batches; project reset and regeneration that
-preserve manual/imported members by default.
-
-**Optional ML boundary — scaffold only.** A Keras 3 adapter, ML status
-endpoint, image/manifest analysis boundary, a postprocessing contract, and an
-experimental training-data skeleton. **No trained model ships**: with no
-weights, `GET /api/ml/status` reports `model_available=false` and analysis
-returns no geometry. This is deliberately far from neural-network development —
-the boundary exists so that nothing can auto-invent walls.
-
-### Persistence & compatibility
-
-The generated sample remains the default `/api/model` behavior. SQLite now
-stores source-tracked additions beside generated members. Parameter
-regeneration preserves committed manual/imported members by default, while
-project reset restores only the sample geometry. Existing `/api/model` and
-`/api/bom.csv` endpoints remain available.
-
-## The most-iterated piece — UI layout fix (v2.1, 2026-06-16)
-
-**Problem.** In the expanded sidebar the navigation buttons were sized
-`calc(var(--sidebar) - 15px)` (~445 px) but lived inside the 64 px icon rail,
-which had no clipping. On hover/pin the revealed nav **labels** (Building
-Specs, BOM, Pricing…) painted across the full width and overlapped the active
-content panel — section names bleeding behind the dashboard cards. The
-dashboard summary cards were also crammed into the sidebar alongside the input
-controls.
-
-**Changes.**
-
-- **Icon rail is now icon-only.** Nav/pin buttons are constrained to the rail
-  width (50 px), `.sidebar-rail` clips overflow, and `.nav-label` is hidden.
-  Section identity comes from the content-panel title and `title` tooltips
-  (VS Code activity-bar pattern), so labels can no longer paint over content.
-- **Dashboard output moved to a floating HUD.** The storeys / zones / element /
-  length / cost / warning summary plus the Regenerate / Download BOM actions now
-  render in a collapsible `#dashboard-hud` overlay anchored top-right of the
-  3D viewport, fully separated from the input sidebar. A **–/+** toggle
-  collapses it. All input panels stay in the sidebar.
-- The `dashboard` sidebar section was removed (rail icon **DB** dropped); the
-  sidebar now defaults to **Building Specs**.
-
-| File | Change |
-|---|---|
-| `frontend/index.html` | rail `overflow:hidden`, icon-only nav-button sizing, `.nav-label { display:none }`, new `.hud` styles, `#dashboard-hud` container |
-| `frontend/src/dashboard.ts` | renders the HUD shell (header + collapse toggle + body) instead of a sidebar section |
-| `frontend/src/sidebar.ts` | removed the `dashboard` section, default active section `specs` |
-| `frontend/src/types.ts` | dropped `"dashboard"` from `SidebarSection` |
-| `frontend/src/main.ts` | `Dashboard` now targets `#dashboard-hud` |
-
-## Verification (v2.0–v2.1)
-
-- Backend smoke suite: CSV validity and required fields, opening bounds, manual
-  wall preview/commit, truss chord/web generation, source tracking, BOM JSON,
-  legacy model/BOM behavior, and **ML-unavailable status**.
-- `tsc && vite build` — type-check and bundle clean; built `dist/index.html`
-  contains `#dashboard-hud`, the 50 px rail buttons and the hidden nav labels.
-- Inputs (storeys, roof, exposure, wall-stud design, source filter, imports,
-  manual wall/truss, settings) all remain in the sidebar; only the read-only
-  summary + regenerate/download moved to the HUD.
-
-## Engineering disclaimer (v2.0–v2.1)
-
-The dashboard remains an education, early-design and estimating tool, and the
-whole project is still a work in progress. AI plan extraction is experimental,
-review-only, and presently has no model behind it. Imported/manual geometry
-must be checked by a qualified designer or engineer, and NZS 3604 or specific
-engineering design governs construction decisions.
-
----
-
-# Earlier development history
-
-The sections below predate the focus work above and are kept for reference.
-
----
-
-## v1.1 — Roof, exposure and gable framing (2026-06-10)
-
-This documents the four features added on top of the v1.0 viewer
+This report documents the four features added on top of the v1.0 viewer
 (3D framing model of the 70′ × 60′ sample plan, colour modes, NZS clause
 tagging, SQL-driven timber BOM export).
 
@@ -394,8 +281,40 @@ designs are shareable.
 - Prices are point-in-time retail snapshots; refresh `materials.py`
   before relying on totals.
 
----
+# Dashboard, Imports and Manual Framing - v2.0 (2026-06-11)
 
-*The v2.0 dashboard / imports / manual framing and v2.1 UI-layout work — the
-most-prompted development to date — is covered in the **Development focus**
-section at the top of this report.*
+## Added vertical slices
+
+- Hover-expand, keyboard-accessible left sidebar with persisted pin state.
+- Dashboard summary, grouped BOM table, pricing provenance and session price
+  overrides.
+- Structured mixed-row CSV validation, editable review, temporary preview and
+  append/replace commit modes.
+- Manual wall-frame and truss generators with preview-before-commit,
+  localStorage drafts, repeated/custom trusses, pricing and warnings.
+- Element source/source-id/editability/confidence metadata and import batches.
+- Project reset and regeneration with manual/import preservation options.
+- Optional Keras 3 adapter, ML status, image/manifest analysis boundary,
+  postprocessing contract and experimental training-data skeleton.
+
+## Persistence and compatibility
+
+The generated sample remains the default `/api/model` behavior. SQLite now
+stores source-tracked additions beside generated members. Parameter
+regeneration preserves committed manual/imported members by default, while
+project reset restores only the sample geometry. Existing `/api/model` and
+`/api/bom.csv` endpoints remain available.
+
+## Verification
+
+- Backend smoke suite: CSV validity and required fields, opening bounds,
+  manual wall preview/commit, truss chord/web generation, source tracking,
+  BOM JSON, legacy model/BOM behavior, and ML-unavailable status.
+- Frontend TypeScript and Vite production build.
+
+## Engineering disclaimer
+
+The dashboard remains an education, early-design and estimating tool. AI plan
+extraction is experimental and review-only. Imported/manual geometry must be
+checked by a qualified designer or engineer, and NZS 3604 or specific
+engineering design governs construction decisions.

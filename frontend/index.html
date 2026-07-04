@@ -47,7 +47,7 @@
     .sidebar-rail {
       width: var(--rail); min-width: var(--rail); padding: 10px 7px;
       display: flex; flex-direction: column; border-right: 1px solid var(--line);
-      background: #1d242d; overflow: hidden;
+      background: #1d242d;
     }
     .brand-mark {
       width: 42px; height: 42px; margin: 0 auto 10px; display: grid;
@@ -56,8 +56,8 @@
     }
     .sidebar-rail nav { display: flex; flex: 1; flex-direction: column; gap: 5px; }
     .nav-button, .pin-button {
-      width: 50px; min-width: 50px; height: 43px; padding: 0;
-      display: flex; align-items: center; justify-content: center; border: 0;
+      width: calc(var(--sidebar) - 15px); height: 43px; padding: 0;
+      display: flex; align-items: center; gap: 14px; border: 0;
       border-radius: 8px; background: transparent; color: var(--dim);
       cursor: pointer; white-space: nowrap;
     }
@@ -66,12 +66,12 @@
     }
     .nav-button.active { box-shadow: inset 3px 0 var(--accent); }
     .nav-icon {
-      width: 100%; text-align: center;
+      width: 49px; min-width: 49px; text-align: center;
       font-size: 11px; font-weight: 800; letter-spacing: .05em;
     }
-    /* Section names live in the panel title + tooltips, so the rail stays a
-       clean icon strip and never paints over the content panel. */
-    .nav-label { display: none; }
+    .nav-label { opacity: 0; transition: opacity .12s ease .08s; }
+    #sidebar:hover .nav-label, #sidebar:focus-within .nav-label,
+    #sidebar.pinned .nav-label { opacity: 1; }
     .sidebar-content {
       width: calc(var(--sidebar) - var(--rail)); min-width: calc(var(--sidebar) - var(--rail));
       height: 100%; overflow-y: auto; padding: 18px 18px 30px;
@@ -141,36 +141,6 @@
     }
     .summary-card span { display: block; color: var(--dim); font-size: 11px; }
     .summary-card strong { display: block; margin-top: 7px; font-size: 18px; }
-    /* Dashboard output HUD — floats over the 3D viewport, away from the
-       input sidebar, so the two never overlap. */
-    .hud {
-      position: fixed; z-index: 15; top: 16px; right: 16px; width: 300px;
-      max-height: calc(100vh - 32px); overflow: auto; padding: 14px;
-      border: 1px solid var(--line); border-radius: 12px;
-      background: rgba(25, 32, 41, .93); backdrop-filter: blur(6px);
-      box-shadow: 0 14px 34px rgba(0, 0, 0, .4);
-    }
-    .hud.collapsed { width: auto; }
-    .hud.collapsed .hud-body { display: none; }
-    .hud-header {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 10px; margin-bottom: 12px;
-    }
-    .hud.collapsed .hud-header { margin-bottom: 0; }
-    .hud-header h2 {
-      margin: 0; color: var(--text); font-size: 14px;
-      text-transform: none; letter-spacing: 0;
-    }
-    .hud-toggle {
-      min-width: 30px; padding: 4px 9px; border: 1px solid var(--line);
-      border-radius: 7px; background: transparent; color: var(--dim);
-      cursor: pointer; line-height: 1;
-    }
-    .hud-toggle:hover { border-color: var(--accent); color: var(--text); }
-    .hud .summary-grid { margin-bottom: 12px; }
-    @media (max-width: 760px) {
-      .hud { width: calc(100vw - 32px); }
-    }
     .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 8px; }
     .filter-grid input { grid-column: 1 / -1; }
     .table-wrap {
@@ -232,7 +202,6 @@
 <body>
   <main id="viewport" aria-label="Interactive 3D BIM model"></main>
   <aside id="sidebar" aria-label="TimberBIM dashboard"></aside>
-  <section id="dashboard-hud" aria-label="Model dashboard summary"></section>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
