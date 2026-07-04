@@ -6,8 +6,6 @@ Run from the backend/ directory:
 
 from __future__ import annotations
 
-import csv
-import io
 import json
 import uuid
 from pathlib import Path
@@ -25,7 +23,7 @@ import materials
 import nzs3604 as nz
 from framing import ModelConfig
 from imports.csv_plan import parse_csv, rows_to_elements
-from imports.schemas import CsvCommitPayload, CsvPlanPayload, VisionCommitPayload
+from imports.schemas import CsvCommitPayload, CsvPlanPayload
 from imports.validators import validate_rows
 from manual_inputs import (
     ManualTrussInput,
@@ -33,7 +31,6 @@ from manual_inputs import (
     generate_truss,
     generate_wall,
 )
-from ml.plan_reader import analyze_image, status as ml_status
 
 app = FastAPI(
     title="TimberBIM Lite", version="2.0",
@@ -262,7 +259,7 @@ async def commit_manual_wall(spec: ManualWallFrameInput) -> dict:
 @app.post("/api/manual/truss/preview")
 async def preview_manual_truss(spec: ManualTrussInput) -> dict:
     source_id = spec.input_id or f"truss-preview-{uuid.uuid4().hex[:10]}"
-    elements, warnings = generate_truss(spec, "vision_preview", source_id)
+    elements, warnings = generate_truss(spec, "csv_preview", source_id)
     return _preview_response(elements, warnings)
 
 
@@ -274,91 +271,6 @@ async def commit_manual_truss(spec: ManualTrussInput) -> dict:
         elements, "manual_truss", source_id, spec.truss_label, 1, 1, 0,
         len(warnings))
     return {"source_id": source_id, "model": db.model_json()}
-
-
-@app.get("/api/ml/status")
-async def get_ml_status() -> dict:
-    return ml_status()
-
-
-@app.post("/api/import/vision-plan/analyze")
-async def analyze_vision_plan(
-    files: list[UploadFile] = File(default=[]),
-    manifest: UploadFile | None = File(default=None),
-) -> dict:
-    manifest_rows: dict[str, dict] = {}
-    if manifest:
-        try:
-            text = (await manifest.read()).decode("utf-8-sig")
-            manifest_rows = {
-                row.get("file_name", ""): row
-                for row in csv.DictReader(io.StringIO(text))
-            }
-        except (UnicodeDecodeError, csv.Error) as exc:
-            raise HTTPException(400, f"Invalid manifest CSV: {exc}") from exc
-    if not files:
-        current = ml_status()
-        return {
-            "status": "no_images", "proposals": [],
-            "warnings": current["warnings"] + [
-                "Upload PNG, JPG/JPEG, or WEBP plan images."
-            ],
-        }
-    results = []
-    proposals = []
-    warnings = []
-    for file in files:
-        suffix = Path(file.filename or "").suffix.lower()
-        if suffix not in {".png", ".jpg", ".jpeg", ".webp"}:
-            warnings.append(f"{file.filename}: unsupported image type")
-            continue
-        meta = manifest_rows.get(file.filename or "", {})
-        result = analyze_image(
-            await file.read(), meta.get("drawing_id") or file.filename or "plan",
-            int(meta.get("level") or 1),
-            float(meta["scale_mm_per_px"])
-            if meta.get("scale_mm_per_px") else None)
-        results.append({"file_name": file.filename, **result})
-        proposals.extend(result["proposals"])
-        warnings.extend(result["warnings"])
-    return {
-        "status": (
-            "proposal_ready" if proposals else "model_not_configured"),
-        "proposals": proposals, "drawings": results,
-        "warnings": list(dict.fromkeys(warnings)),
-        "review_required": True,
-    }
-
-
-@app.post("/api/import/vision-plan/commit")
-async def commit_vision_plan(payload: VisionCommitPayload) -> dict:
-    accepted = [
-        proposal for proposal in payload.proposals
-        if proposal.get("accepted") and float(proposal.get("confidence", 0)) >= 0.25
-    ]
-    if not accepted:
-        raise HTTPException(422, "No reviewed proposals were accepted")
-    # Reviewed proposals use the same explicit wall/opening/truss row contract.
-    validation = validate_rows(accepted, "mm")
-    if validation["errors"]:
-        raise HTTPException(
-            422, {"message": "Edit AI proposals into valid geometry", **validation})
-    batch_id = f"vision-{uuid.uuid4().hex[:10]}"
-    elements, warnings = rows_to_elements(
-        validation["normalized_entities"], "vision_import", batch_id)
-    confidence = min(float(p.get("confidence", 1)) for p in accepted)
-    for element in elements:
-        element["confidence"] = confidence
-    if payload.mode == "append_to_sample_geometry":
-        db.append_elements(
-            elements, "vision_import", batch_id, payload.file_name,
-            len(payload.proposals), len(accepted),
-            len(payload.proposals) - len(accepted), len(warnings))
-    else:
-        db.replace_geometry(
-            elements, "vision_import", batch_id, payload.file_name,
-            len(payload.proposals), len(warnings))
-    return {"batch_id": batch_id, "model": db.model_json()}
 
 
 @app.get("/api/import/batches")

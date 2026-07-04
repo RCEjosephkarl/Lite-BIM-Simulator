@@ -281,21 +281,18 @@ designs are shareable.
 - Prices are point-in-time retail snapshots; refresh `materials.py`
   before relying on totals.
 
-# Dashboard, Imports and Manual Framing - v2.0 (2026-06-11)
+# Imports and Manual Framing - v2.0 (2026-06-11)
 
 ## Added vertical slices
 
 - Hover-expand, keyboard-accessible left sidebar with persisted pin state.
-- Dashboard summary, grouped BOM table, pricing provenance and session price
-  overrides.
+- Grouped BOM table, pricing provenance and session price overrides.
 - Structured mixed-row CSV validation, editable review, temporary preview and
   append/replace commit modes.
 - Manual wall-frame and truss generators with preview-before-commit,
   localStorage drafts, repeated/custom trusses, pricing and warnings.
 - Element source/source-id/editability/confidence metadata and import batches.
 - Project reset and regeneration with manual/import preservation options.
-- Optional Keras 3 adapter, ML status, image/manifest analysis boundary,
-  postprocessing contract and experimental training-data skeleton.
 
 ## Persistence and compatibility
 
@@ -309,12 +306,12 @@ project reset restores only the sample geometry. Existing `/api/model` and
 
 - Backend smoke suite: CSV validity and required fields, opening bounds,
   manual wall preview/commit, truss chord/web generation, source tracking,
-  BOM JSON, legacy model/BOM behavior, and ML-unavailable status.
+  BOM JSON, and legacy model/BOM behavior.
 - Frontend TypeScript and Vite production build.
 
 ## Engineering disclaimer
 
-The dashboard remains an education, early-design and estimating tool. AI plan
-extraction is experimental and review-only. Imported/manual geometry must be
-checked by a qualified designer or engineer, and NZS 3604 or specific
-engineering design governs construction decisions.
+The app remains an education, early-design and estimating tool.
+Imported/manual geometry must be checked by a qualified designer or
+engineer, and NZS 3604 or specific engineering design governs construction
+decisions.

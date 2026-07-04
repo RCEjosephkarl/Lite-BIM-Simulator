@@ -19,13 +19,3 @@ class CsvCommitPayload(CsvPlanPayload):
         "append_to_sample_geometry",
         "new_project_from_csv",
     ] = "append_to_sample_geometry"
-
-
-class VisionCommitPayload(BaseModel):
-    proposals: list[dict[str, Any]] = Field(default_factory=list)
-    mode: Literal[
-        "replace_sample_geometry",
-        "append_to_sample_geometry",
-        "new_project_from_csv",
-    ] = "append_to_sample_geometry"
-    file_name: str = ""

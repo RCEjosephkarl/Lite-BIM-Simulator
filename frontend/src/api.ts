@@ -2,7 +2,7 @@ import type {
   BimModel, BomRow, CsvPlanRow, CsvValidationResult,
   ImportBatch,
   ManualTrussInput, ManualWallFrameInput, ModelParams, PreviewResult,
-  PricingRow, VisionPlanAnalysisResult, VisionProposal,
+  PricingRow,
 } from "./types";
 
 export function paramsToQuery(p: ModelParams): URLSearchParams {
@@ -65,7 +65,6 @@ export const getWarnings = () => json<{
   warnings: { message: string; source?: string; source_id?: string }[];
   count: number;
 }>("/api/warnings");
-export const getMlStatus = () => json<Record<string, unknown>>("/api/ml/status");
 
 export async function uploadCsvPlanValidate(
   file: File, units: "mm" | "metres" | "feet_inches",
@@ -86,23 +85,6 @@ export const commitCsvPlan = (
 ) => post<{ batch_id: string; model: BimModel }>(
   "/api/import/csv-plan/commit",
   { rows, units: "mm", file_name: fileName, mode });
-
-export async function analyzeVisionPlan(
-  files: File[], manifest?: File,
-): Promise<VisionPlanAnalysisResult> {
-  const form = new FormData();
-  files.forEach((file) => form.append("files", file));
-  if (manifest) form.append("manifest", manifest);
-  return json("/api/import/vision-plan/analyze", {
-    method: "POST", body: form,
-  });
-}
-
-export const commitVisionPlan = (
-  proposals: VisionProposal[], mode: string, fileName = "",
-) => post<{ batch_id: string; model: BimModel }>(
-  "/api/import/vision-plan/commit",
-  { proposals, mode, file_name: fileName });
 
 export const previewManualWallFrame = (input: ManualWallFrameInput) =>
   post<PreviewResult>("/api/manual/wall-frame/preview", input);

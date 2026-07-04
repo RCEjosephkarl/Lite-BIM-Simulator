@@ -1,3 +1,0 @@
-drawing_id,file_name,level,scale_mm_per_px,sheet_name,drawing_type,rotation_deg,notes
-FP-L1,level-1-floor-plan.png,1,5.0,A101,floor_plan,0,Example only; image file is not included
-RP-L1,roof-plan.jpg,1,5.0,A201,roof_plan,0,Review all AI proposals before commit

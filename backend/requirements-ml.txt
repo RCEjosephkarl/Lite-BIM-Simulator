@@ -1,5 +1,0 @@
-# Optional only. The core FastAPI app runs without these packages.
-keras>=3.3
-keras-hub>=0.18
-pillow>=10
-# Install one Keras backend separately: tensorflow, torch, or jax.

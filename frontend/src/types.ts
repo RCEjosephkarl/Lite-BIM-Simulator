@@ -317,16 +317,3 @@ export interface PreviewResult {
   };
 }
 
-export interface VisionProposal extends CsvPlanRow {
-  proposal_id?: string;
-  confidence?: number;
-  source_drawing?: string;
-  accepted?: boolean;
-}
-
-export interface VisionPlanAnalysisResult {
-  status: string;
-  proposals: VisionProposal[];
-  warnings: string[];
-  review_required?: boolean;
-}

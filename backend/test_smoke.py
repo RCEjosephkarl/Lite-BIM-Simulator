@@ -313,16 +313,12 @@ def test_manual_truss_preview_returns_chord_and_web_elements():
     assert "truss_web" in codes
 
 
-def test_bom_json_and_ml_status_are_available_without_ml_dependencies():
+def test_bom_json_available_and_ml_routes_removed():
     get_model()
     bom = client.get("/api/bom.json")
     assert bom.status_code == 200
     assert bom.json()["rows"]
-    status = client.get("/api/ml/status")
-    assert status.status_code == 200
-    assert "model_available" in status.json()
-
-    analysis = client.post("/api/import/vision-plan/analyze")
-    assert analysis.status_code == 200
-    assert analysis.json()["proposals"] == []
-    assert analysis.json()["warnings"]
+    # POST to a removed route hits the static mount, which answers 405.
+    assert client.get("/api/ml/status").status_code == 404
+    assert client.post("/api/import/vision-plan/analyze").status_code in {404, 405}
+    assert client.post("/api/import/vision-plan/commit").status_code in {404, 405}
