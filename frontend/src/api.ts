@@ -35,8 +35,13 @@ async function json<T>(url: string, init?: RequestInit): Promise<T> {
     let detail = `${response.status} ${response.statusText}`;
     try {
       const body = await response.json();
-      detail = typeof body.detail === "string"
-        ? body.detail : body.detail?.message ?? body.message ?? detail;
+      if (typeof body.detail === "string") detail = body.detail;
+      // pydantic validation errors: detail is a list of {loc, msg}
+      else if (Array.isArray(body.detail) && body.detail.length)
+        detail = body.detail
+          .map((d: { msg?: string }) => d.msg ?? "").filter(Boolean)
+          .join("; ") || detail;
+      else detail = body.detail?.message ?? body.message ?? detail;
     } catch { /* keep HTTP message */ }
     throw new Error(detail);
   }

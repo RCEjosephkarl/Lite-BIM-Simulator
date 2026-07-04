@@ -315,3 +315,36 @@ The app remains an education, early-design and estimating tool.
 Imported/manual geometry must be checked by a qualified designer or
 engineer, and NZS 3604 or specific engineering design governs construction
 decisions.
+
+# Frame selection, treatments and envelope - v2.1 (2026-07-04)
+
+## Changes
+
+- Removed the Dashboard section and the experimental ML/vision plan
+  reader; "Regenerate model" now lives in Settings and the Imports
+  section is CSV-only.
+- One click on a 3D member now selects its whole wall-frame segment or
+  truss (group tinted, clicked member white) and shows aggregate
+  metadata: stud spacing, timber sizes, openings, plies, treatment,
+  member count, lineal metres and estimated cost.
+- NZS 3640 treatments (H1.2, H3.1, H3.2, H4, H5) are selectable per
+  manual wall/truss input and as a building-level `wall_treatment`
+  override validated server-side.
+- Wall frames are limited to a 6 m x 3 m envelope (orientation
+  interchangeable): manual inputs are rejected beyond it, auto-generated
+  segments over 6 m carry a "verify panel joins" warning.
+- Added GL8/GL10/GL12 glulam grade catalogue entries (area-scaled,
+  low-confidence estimating prices).
+- Sidebar rail labels render as solid tooltip chips on rail hover only,
+  so they no longer wash out over panel content; API validation errors
+  now surface their descriptive message in the UI.
+
+## Verification
+
+- Backend smoke suite (20 tests): treatments override, envelope
+  accept/reject, materials completeness, ML routes removed.
+- Frontend TypeScript build plus headless-browser end-to-end pass:
+  wall/truss group selection, empty-click clearing, colour-mode switch
+  with active selection, manual-wall envelope rejection message,
+  treatment dropdowns, URL `wall_treatment` round-trip, regenerate from
+  Settings.
