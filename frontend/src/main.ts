@@ -1,6 +1,5 @@
 import { downloadBom, fetchModel, paramsToQuery } from "./api";
 import { BomPanel } from "./bomPanel";
-import { Dashboard } from "./dashboard";
 import { ImportsPanel } from "./imports";
 import { ManualInputs } from "./manualInputs";
 import { PricingPanel } from "./pricingPanel";
@@ -22,7 +21,6 @@ let params: ModelParams = { ...DEFAULT_PARAMS, ...paramsFromUrl() };
 let currentModel: BimModel | null = null;
 let previewModel: BimModel | null = null;
 
-const dashboard = new Dashboard(sidebar.getSection("dashboard"));
 const bomPanel = new BomPanel(sidebar.getSection("bom"));
 const pricingPanel = new PricingPanel(sidebar.getSection("pricing"));
 const importsPanel = new ImportsPanel(sidebar.getSection("imports"));
@@ -59,7 +57,6 @@ viewer.onPick = (element, type) => {
   if (element) sidebar.open("specs");
 };
 
-dashboard.onModel = setModel;
 importsPanel.onModel = setModel;
 manualInputs.onModel = setModel;
 importsPanel.onPreview = showPreview;
@@ -101,7 +98,7 @@ function render(): void {
 
 async function refreshDataPanels(): Promise<void> {
   await Promise.allSettled([
-    dashboard.refresh(), bomPanel.refresh(), pricingPanel.refresh(),
+    bomPanel.refresh(), pricingPanel.refresh(),
     sidebar.refreshWarnings(), importsPanel.refreshBatches(),
   ]);
 }

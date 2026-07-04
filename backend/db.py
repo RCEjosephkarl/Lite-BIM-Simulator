@@ -458,31 +458,6 @@ def warnings_json() -> dict:
     return {"warnings": deduped, "count": len(deduped)}
 
 
-def dashboard() -> dict:
-    model = model_json()
-    con = connect()
-    lengths = {
-        r["category"]: r["lineal_m"] for r in con.execute(
-            "SELECT t.category, ROUND(SUM(e.length_mm*e.plies)/1000.0,2) "
-            "AS lineal_m FROM elements e JOIN element_types t "
-            "ON t.code=e.type_code GROUP BY t.category")
-    }
-    con.close()
-    return {
-        "storeys": model["meta"]["storeys"],
-        "roof_type": model["meta"]["roof"],
-        "wind_zone": model["meta"]["wind_zone"],
-        "wind_speed": model["meta"]["wind_speed"],
-        "snow_zone": model["meta"]["snow_zone"],
-        "total_elements": len(model["elements"]),
-        "wall_frame_lineal_m": lengths.get("wall", 0),
-        "roof_truss_lineal_m": lengths.get("roof", 0),
-        "estimated_material_cost_usd":
-            model["meta"]["cost_summary"]["grand_total_usd"],
-        "warning_count": len(warnings_json()["warnings"]),
-    }
-
-
 if __name__ == "__main__":
     print("elements inserted:", rebuild(ModelConfig()))
     print(bom_csv()[:600])

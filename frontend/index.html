@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TimberBIM Lite - BIM dashboard</title>
+  <title>TimberBIM Lite - timber framing workspace</title>
   <style>
     :root {
       --bg: #171c23; --panel: #222a34; --panel-2: #192029;
@@ -131,16 +131,6 @@
     }
     .subform legend { color: var(--accent); font-size: 12px; }
     .subform .table-delete { align-self: end; margin-bottom: 4px; }
-    .summary-grid {
-      display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
-      margin-bottom: 14px;
-    }
-    .summary-card {
-      min-height: 78px; padding: 12px; border: 1px solid var(--line);
-      border-radius: 10px; background: var(--panel-2);
-    }
-    .summary-card span { display: block; color: var(--dim); font-size: 11px; }
-    .summary-card strong { display: block; margin-top: 7px; font-size: 18px; }
     .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 8px; }
     .filter-grid input { grid-column: 1 / -1; }
     .table-wrap {
@@ -195,13 +185,12 @@
     @media (max-width: 900px) {
       :root { --sidebar: 410px; }
       .form-grid { grid-template-columns: 1fr; }
-      .summary-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <main id="viewport" aria-label="Interactive 3D BIM model"></main>
-  <aside id="sidebar" aria-label="TimberBIM dashboard"></aside>
+  <aside id="sidebar" aria-label="TimberBIM workspace panels"></aside>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

@@ -167,7 +167,7 @@ def wall_warnings(spec: ManualWallFrameInput) -> list[str]:
     if materials.normalise_material_key(spec.stud_material) is None:
         out.append("custom material has no catalogue price")
     if spec.plies > 6:
-        out.append("plies exceed the dashboard design-control range")
+        out.append("plies exceed the design-control range (1-6)")
     return out
 
 

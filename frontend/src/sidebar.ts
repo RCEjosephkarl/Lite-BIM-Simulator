@@ -1,8 +1,7 @@
-import { getWarnings, resetProject } from "./api";
+import { getWarnings, regenerateProject, resetProject } from "./api";
 import type { BimModel, SidebarSection } from "./types";
 
 const SECTIONS: { id: SidebarSection; icon: string; label: string }[] = [
-  { id: "dashboard", icon: "DB", label: "Dashboard" },
   { id: "specs", icon: "BS", label: "Building Specs" },
   { id: "bom", icon: "BM", label: "BOM" },
   { id: "pricing", icon: "PR", label: "Pricing" },
@@ -13,7 +12,7 @@ const SECTIONS: { id: SidebarSection; icon: string; label: string }[] = [
 ];
 
 export class Sidebar {
-  private active: SidebarSection = "dashboard";
+  private active: SidebarSection = "specs";
   private sections = new Map<SidebarSection, HTMLElement>();
   private pinned = localStorage.getItem("timberbim.sidebarPinned") === "true";
   onModel: (model: BimModel) => void = () => {};
@@ -29,7 +28,7 @@ export class Sidebar {
     this.root.innerHTML = `
       <div class="sidebar-rail">
         <div class="brand-mark" aria-label="TimberBIM Lite">TB</div>
-        <nav aria-label="BIM dashboard sections">
+        <nav aria-label="Workspace sections">
           ${SECTIONS.map((section) => `
             <button class="nav-button" data-section="${section.id}"
                     aria-label="${section.label}" title="${section.label}">
@@ -63,9 +62,17 @@ export class Sidebar {
 
     this.getSection("settings").insertAdjacentHTML("beforeend", `
       <p class="notice">Warnings combine NZS scope notes, custom spacing,
-        invalid imports, AI confidence, and missing pricing metadata.</p>
+        invalid imports, and missing pricing metadata.</p>
       <div id="settings-warnings" class="message-list">Loading warnings...</div>
+      <button id="regenerate-model" class="primary-button">Regenerate model</button>
+      <p class="notice">Regeneration preserves imports and manual additions.</p>
       <button id="reset-app" class="danger-button">Reset app state</button>`);
+    this.getSection("settings").querySelector("#regenerate-model")!
+      .addEventListener("click", async () => {
+        const model = await regenerateProject(true, true);
+        this.onModel(model);
+        await this.refreshWarnings();
+      });
     this.getSection("settings").querySelector("#reset-app")!.addEventListener(
       "click", async () => {
         if (!confirm("Clear all imported/manual elements and restore the sample model?"))

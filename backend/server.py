@@ -37,7 +37,7 @@ from ml.plan_reader import analyze_image, status as ml_status
 
 app = FastAPI(
     title="TimberBIM Lite", version="2.0",
-    description="Lite BIM dashboard for timber-framed residential studies")
+    description="Lite BIM workspace for timber-framed residential studies")
 
 
 def _parse_json_dict(raw: str | None, name: str, warns: list[str]) -> dict:
@@ -141,11 +141,6 @@ async def get_pricing() -> dict:
 @app.get("/api/cost-summary")
 async def get_cost_summary() -> dict:
     return db.cost_summary()
-
-
-@app.get("/api/dashboard")
-async def get_dashboard() -> dict:
-    return db.dashboard()
 
 
 @app.get("/api/warnings")

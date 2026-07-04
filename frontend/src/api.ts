@@ -1,5 +1,5 @@
 import type {
-  BimModel, BomRow, CsvPlanRow, CsvValidationResult, DashboardSummary,
+  BimModel, BomRow, CsvPlanRow, CsvValidationResult,
   ImportBatch,
   ManualTrussInput, ManualWallFrameInput, ModelParams, PreviewResult,
   PricingRow, VisionPlanAnalysisResult, VisionProposal,
@@ -57,7 +57,6 @@ export function downloadBom(): void {
   window.location.href = "/api/bom.csv";
 }
 
-export const getDashboardSummary = () => json<DashboardSummary>("/api/dashboard");
 export const getBomJson = () => json<{ rows: BomRow[]; disclaimer: string }>(
   "/api/bom.json");
 export const getPricing = () => json<{ rows: PricingRow[]; disclaimer: string }>(

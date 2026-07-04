@@ -149,21 +149,8 @@ export interface BimModel {
 export type ColorMode = "function" | "material" | "realistic";
 
 export type SidebarSection =
-  "dashboard" | "specs" | "bom" | "pricing" | "imports" |
+  "specs" | "bom" | "pricing" | "imports" |
   "wall" | "truss" | "settings";
-
-export interface DashboardSummary {
-  storeys: number;
-  roof_type: string;
-  wind_zone: string;
-  wind_speed: number | null;
-  snow_zone: string;
-  total_elements: number;
-  wall_frame_lineal_m: number;
-  roof_truss_lineal_m: number;
-  estimated_material_cost_usd: number;
-  warning_count: number;
-}
 
 export interface BomRow {
   category: string;
