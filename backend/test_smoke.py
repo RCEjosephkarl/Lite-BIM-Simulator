@@ -314,6 +314,21 @@ def test_manual_truss_preview_returns_chord_and_web_elements():
     assert "truss_web" in codes
 
 
+def test_wall_treatment_override():
+    m = get_model({"wall_treatment": "H3.2"})
+    walls = of_type(m, WALL_CODES)
+    assert walls and all(e["treatment"] == "H3.2" for e in walls)
+    assert all(s["treatment"] == "H3.2"
+               for s in m["meta"]["frame_segments"])
+    # roof/floor members keep their own treatments
+    assert any(e["treatment"] != "H3.2"
+               for e in of_type(m, NON_WALL_CODES))
+
+    bad = get_model({"wall_treatment": "H9"})
+    assert any("unknown treatment" in w for w in bad["meta"]["warnings"])
+    assert all(e["treatment"] == "H1.2" for e in of_type(bad, WALL_CODES))
+
+
 def test_bom_json_available_and_ml_routes_removed():
     get_model()
     bom = client.get("/api/bom.json")

@@ -43,7 +43,7 @@ class ManualWallFrameInput(BaseModel):
     top_plate_size: str = "90x45"
     nog_count: int = Field(default=1, ge=0, le=10)
     nog_spacing_mm: float | None = Field(default=None, gt=0)
-    treatment: str = "H1.2"
+    treatment: Literal["H1.2", "H3.1", "H3.2", "H4", "H5"] = "H1.2"
     exterior: bool = True
     load_bearing: bool = True
     openings: list[ManualOpening] = Field(default_factory=list)
@@ -101,7 +101,7 @@ class ManualTrussInput(BaseModel):
     web_material: str = "SG8"
     overhang_mm: float = Field(default=450, ge=0)
     heel_height_mm: float = Field(default=100, ge=0)
-    treatment: str = "H1.2"
+    treatment: Literal["H1.2", "H3.1", "H3.2", "H4", "H5"] = "H1.2"
     truss_type: Literal[
         "common", "girder", "mono", "scissor", "attic", "custom"
     ] = "common"

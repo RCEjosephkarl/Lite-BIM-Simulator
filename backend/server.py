@@ -58,6 +58,7 @@ def _config(
     stud_material_levels: str | None, stud_spacing_levels: str | None,
     wall_plies_levels: str | None, stud_material_segments: str | None,
     stud_spacing_segments: str | None, wall_plies_segments: str | None,
+    wall_treatment: str | None = None,
 ) -> ModelConfig:
     warns: list[str] = []
     return ModelConfig(
@@ -79,6 +80,7 @@ def _config(
             stud_spacing_segments, "stud_spacing_segments", warns),
         wall_plies_segments=_parse_json_dict(
             wall_plies_segments, "wall_plies_segments", warns),
+        wall_treatment=wall_treatment,
         override_warnings=warns,
     ).normalised()
 
@@ -100,12 +102,14 @@ async def get_model(
     stud_material_segments: str | None = None,
     stud_spacing_segments: str | None = None,
     wall_plies_segments: str | None = None,
+    wall_treatment: str | None = None,
 ) -> dict:
     return db.model_json(_config(
         storeys, roof, wind_zone, wind_speed, snow_zone, gable_spacing,
         stud_material_overall, stud_spacing_overall, wall_plies_overall,
         stud_material_levels, stud_spacing_levels, wall_plies_levels,
         stud_material_segments, stud_spacing_segments, wall_plies_segments,
+        wall_treatment,
     ))
 
 

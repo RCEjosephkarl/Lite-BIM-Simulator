@@ -60,6 +60,9 @@ export const MATERIAL_OPTIONS: [string, string][] = [
   ["hy90", "Hy90"],
 ];
 
+/** NZS 3640 hazard-class treatment options. */
+export const TREATMENT_OPTIONS = ["H1.2", "H3.1", "H3.2", "H4", "H5"];
+
 /** Generation parameters sent to /api/model. */
 export interface ModelParams {
   storeys: number;
@@ -78,6 +81,7 @@ export interface ModelParams {
   stud_material_segments: Record<string, string>; // keyed by segment_id
   stud_spacing_segments: Record<string, number>;
   wall_plies_segments: Record<string, number>;
+  wall_treatment: string | null; // NZS 3640 class, e.g. 'H3.2'
 }
 
 export const DEFAULT_PARAMS: ModelParams = {
@@ -96,6 +100,7 @@ export const DEFAULT_PARAMS: ModelParams = {
   stud_material_segments: {},
   stud_spacing_segments: {},
   wall_plies_segments: {},
+  wall_treatment: null,
 };
 
 /** Per-wall-segment metadata (meta.frame_segments). */
@@ -109,6 +114,7 @@ export interface FrameSegment {
   material: string; // effective material display name
   spacing_mm: number; // effective stud spacing
   plies: number; // effective wall plies
+  treatment?: string; // effective NZS 3640 treatment
 }
 
 export interface CostGroup {

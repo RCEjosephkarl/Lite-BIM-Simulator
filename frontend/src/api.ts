@@ -19,6 +19,7 @@ export function paramsToQuery(p: ModelParams): URLSearchParams {
     q.set("stud_spacing_overall", String(p.stud_spacing_overall));
   if (p.wall_plies_overall !== null && p.wall_plies_overall !== 1)
     q.set("wall_plies_overall", String(p.wall_plies_overall));
+  if (p.wall_treatment) q.set("wall_treatment", p.wall_treatment);
   const dicts = [
     "stud_material_levels", "stud_spacing_levels", "wall_plies_levels",
     "stud_material_segments", "stud_spacing_segments", "wall_plies_segments",

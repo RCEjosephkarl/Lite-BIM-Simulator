@@ -5,7 +5,7 @@ import { ManualInputs } from "./manualInputs";
 import { PricingPanel } from "./pricingPanel";
 import { Viewer } from "./scene";
 import { Sidebar } from "./sidebar";
-import { DEFAULT_PARAMS } from "./types";
+import { DEFAULT_PARAMS, TREATMENT_OPTIONS } from "./types";
 import type {
   BimModel, ColorMode, ModelParams, PreviewResult,
 } from "./types";
@@ -141,6 +141,9 @@ function paramsFromUrl(): Partial<ModelParams> {
   const plies = Number(query.get("wall_plies_overall"));
   if (query.get("wall_plies_overall") && Number.isFinite(plies))
     output.wall_plies_overall = plies;
+  const treatment = query.get("wall_treatment");
+  if (treatment && TREATMENT_OPTIONS.includes(treatment))
+    output.wall_treatment = treatment;
   const maps = [
     ["stud_material_levels", "string"], ["stud_spacing_levels", "number"],
     ["wall_plies_levels", "number"], ["stud_material_segments", "string"],

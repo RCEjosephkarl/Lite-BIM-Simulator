@@ -2,7 +2,7 @@ import {
   commitManualTruss, commitManualWallFrame, previewManualTruss,
   previewManualWallFrame,
 } from "./api";
-import { MATERIAL_OPTIONS } from "./types";
+import { MATERIAL_OPTIONS, TREATMENT_OPTIONS } from "./types";
 import type {
   BimModel, ManualOpening, ManualTrussInput, ManualWallFrameInput,
   PreviewResult, TrussMember, TrussNode,
@@ -10,6 +10,10 @@ import type {
 
 const materialOptions = MATERIAL_OPTIONS.map(([key, label]) =>
   `<option value="${label}" data-key="${key}">${label}</option>`).join("");
+
+const treatmentField = `<label class="field"><span>Treatment (NZS 3640)</span>
+  <select name="treatment">${TREATMENT_OPTIONS.map((t) =>
+    `<option value="${t}">${t}</option>`).join("")}</select></label>`;
 
 function field(label: string, name: string, value: string | number,
   type = "number", extra = ""): string {
@@ -65,7 +69,7 @@ class ManualWallPanel {
         ${field("Top plate size", "top_plate_size", "90x45", "text")}
         ${field("Nog count", "nog_count", 1, "number", 'min="0" max="10"')}
         ${field("Nog spacing (mm, optional)", "nog_spacing_mm", "", "number", 'min="100"')}
-        ${field("Treatment", "treatment", "H1.2", "text")}
+        ${treatmentField}
         <label class="check-field"><input name="exterior" type="checkbox" checked>
           Exterior wall</label>
         <label class="check-field"><input name="load_bearing" type="checkbox" checked>
@@ -261,7 +265,7 @@ class ManualTrussPanel {
           <select name="web_material">${materialOptions}</select></label>
         ${field("Overhang (mm)", "overhang_mm", 450)}
         ${field("Heel height (mm)", "heel_height_mm", 100)}
-        ${field("Treatment", "treatment", "H1.2", "text")}
+        ${treatmentField}
         <label class="field full custom-truss" hidden><span>Custom nodes CSV:
           id,x,y</span><textarea name="nodes_csv" rows="5">L,-4500,0
 C,0,2100

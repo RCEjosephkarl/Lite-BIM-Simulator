@@ -1,5 +1,5 @@
 import { MATERIAL_LEGEND } from "./colors";
-import { DEFAULT_PARAMS, MATERIAL_OPTIONS } from "./types";
+import { DEFAULT_PARAMS, MATERIAL_OPTIONS, TREATMENT_OPTIONS } from "./types";
 import type {
   BimElement, BimModel, ColorMode, ElementType, ModelParams,
 } from "./types";
@@ -149,6 +149,14 @@ export class Panel {
           <input type="number" id="wall-plies" min="1" max="6" step="1"
                  placeholder="1">
         </div>
+        <div class="field">
+          <label for="wall-treatment">Wall treatment (NZS 3640, all walls)</label>
+          <select id="wall-treatment">
+            <option value="">Default (H1.2)</option>
+            ${TREATMENT_OPTIONS.map((t) =>
+              `<option value="${t}">${t}</option>`).join("")}
+          </select>
+        </div>
         <button id="stud-clear" class="clear-override" hidden>
           Clear override for this level/segment</button>
         <p class="hint">Precedence: segment &gt; level &gt; overall &gt;
@@ -251,6 +259,9 @@ export class Panel {
       this.applyStudPatch());
     this.q("#wall-plies").addEventListener("change", () =>
       this.applyStudPatch());
+    this.q("#wall-treatment").addEventListener("change", () =>
+      this.emit({ wall_treatment:
+        this.q<HTMLSelectElement>("#wall-treatment").value || null }));
     this.q("#stud-clear").addEventListener("click", () =>
       this.clearStudOverride());
     this.refreshStudControls();
@@ -410,6 +421,7 @@ export class Panel {
       this.q("#speed-field").hidden = true;
     }
     this.q<HTMLSelectElement>("#snow").value = p.snow_zone;
+    this.q<HTMLSelectElement>("#wall-treatment").value = p.wall_treatment ?? "";
     this.refreshStudControls();
   }
 

@@ -50,6 +50,7 @@ class ModelConfig:
     stud_material_segments: dict[str, str] = field(default_factory=dict)
     stud_spacing_segments: dict[str, int] = field(default_factory=dict)
     wall_plies_segments: dict[str, int] = field(default_factory=dict)
+    wall_treatment: str | None = None  # NZS 3640 class, e.g. 'H3.2'
     # populated by normalised(); a dataclass field so it survives asdict()
     override_warnings: list[str] = field(default_factory=list)
 
@@ -113,6 +114,17 @@ class ModelConfig:
                     out[lvl] = cv
             return out
 
+        def treatment(v: object) -> str | None:
+            if v is None:
+                return None
+            t = str(v).strip()
+            match = next((opt for opt in nz.TREATMENTS
+                          if opt.lower() == t.lower()), None)
+            if match is None:
+                warns.append(f"unknown treatment '{_safe(t)}' "
+                             f"in wall_treatment — ignored")
+            return match
+
         def by_segment(d: dict, clean, label: str) -> dict:
             out = {}
             for k, v in (d or {}).items():
@@ -151,6 +163,7 @@ class ModelConfig:
                 "stud_spacing_segments"),
             wall_plies_segments=by_segment(
                 self.wall_plies_segments, plies, "wall_plies_segments"),
+            wall_treatment=treatment(self.wall_treatment),
         )
         if c.wind_speed is not None:
             c.wind_zone = nz.wind_zone_for_speed(c.wind_speed)
@@ -227,7 +240,8 @@ def _el(els: list, type_code: str, storey: int, size: str, length: float,
 def frame_wall(els: list, wall: g.Wall, storey: int, spacing: int,
                z: float, note: str = "", *, material: str = "SG8",
                plies: int = 1, segment_id: str = "",
-               segment_label: str = "") -> None:
+               segment_label: str = "",
+               treatment: str = nz.WALL_TREATMENT) -> None:
     dx, dy = wall.x2 - wall.x1, wall.y2 - wall.y1
     length = math.hypot(dx, dy)
     if length < 100:
@@ -344,6 +358,7 @@ def frame_wall(els: list, wall: g.Wall, storey: int, spacing: int,
         e["segment_id"] = segment_id
         e["segment_label"] = segment_label
         e["stud_spacing_mm"] = spacing
+        e["treatment"] = treatment
         if e["type_code"] in STUD_LIKE:
             e["material"] = material
             e["grade"] = material
@@ -695,10 +710,12 @@ def generate(cfg: ModelConfig | None = None) -> GenerateResult:
                 length_mm=round(math.hypot(w.x2 - w.x1, w.y2 - w.y1), 1),
                 exterior=w.exterior, openings=len(w.openings),
                 material=materials.display_name(mat_key),
-                spacing_mm=spacing, plies=plies))
+                spacing_mm=spacing, plies=plies,
+                treatment=cfg.wall_treatment or nz.WALL_TREATMENT))
             frame_wall(els, w, s, spacing, z, wall_note,
                        material=materials.display_name(mat_key), plies=plies,
-                       segment_id=seg_id, segment_label=label)
+                       segment_id=seg_id, segment_label=label,
+                       treatment=cfg.wall_treatment or nz.WALL_TREATMENT)
         if s < storeys:  # platform for the storey above
             frame_floor(els, upper_poly, s, z + WALL_H, note)
 

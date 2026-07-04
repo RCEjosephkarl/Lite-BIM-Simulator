@@ -15,6 +15,8 @@ from __future__ import annotations
 GRADE = "SG8"                  # NZS 3604 cl. 2.3 — minimum structural grade
 WALL_TREATMENT = "H1.2"        # cl. 4 / NZS 3640 — enclosed framing
 OUTDOOR_TREATMENT = "H3.2"     # exposed posts/beams
+# NZS 3640 hazard-class treatments selectable for wall framing
+TREATMENTS = ("H1.2", "H3.1", "H3.2", "H4", "H5")
 
 STUD_HEIGHT = 2400             # common storey stud height (mm)
 PLATE_THICK = 45               # 90x45 plate laid flat
