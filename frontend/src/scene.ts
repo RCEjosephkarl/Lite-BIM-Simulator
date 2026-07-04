@@ -1,7 +1,9 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { elementColor } from "./colors";
-import type { BimElement, BimModel, ColorMode, ElementType } from "./types";
+import type {
+  BimElement, BimModel, ColorMode, ElementType, PickInfo,
+} from "./types";
 
 const MM = 1 / 1000; // backend units are mm; scene units are metres
 
@@ -16,17 +18,21 @@ interface TypeMesh {
   elements: BimElement[]; // index = instanceId
 }
 
+const CLICKED_COLOR = new THREE.Color("#ffffff");
+const GROUP_COLOR = new THREE.Color("#ffe08a"); // rest of the wall/truss
+
 export class Viewer {
   readonly scene = new THREE.Scene();
   readonly camera: THREE.PerspectiveCamera;
   readonly renderer: THREE.WebGLRenderer;
   readonly controls: OrbitControls;
-  onPick: (el: BimElement | null, type: ElementType | null) => void = () => {};
+  onPick: (info: PickInfo | null) => void = () => {};
 
   private typeMeshes = new Map<string, TypeMesh>();
   private modelGroup = new THREE.Group();
   private mode: ColorMode = "function";
-  private selected: { mesh: THREE.InstancedMesh; id: number } | null = null;
+  // highlighted instances; first entry is the clicked member
+  private selected: { tm: TypeMesh; id: number }[] = [];
   private raycaster = new THREE.Raycaster();
   private downAt = new THREE.Vector2();
 
@@ -101,7 +107,7 @@ export class Viewer {
 
   buildModel(model: BimModel, mode: ColorMode): void {
     this.mode = mode;
-    this.selected = null;
+    this.selected = [];
     this.modelGroup.clear();
     this.typeMeshes.forEach((tm) => {
       tm.mesh.geometry.dispose();
@@ -178,29 +184,56 @@ export class Viewer {
     this.clearHighlight();
     const hit = hits.find((h) => h.instanceId !== undefined);
     if (!hit) {
-      this.onPick(null, null);
+      this.onPick(null);
       return;
     }
     const tm = this.typeMeshes.get((hit.object as THREE.InstancedMesh).name)!;
     const id = hit.instanceId!;
-    this.selected = { mesh: tm.mesh, id };
-    tm.mesh.setColorAt(id, new THREE.Color("#ffffff"));
-    tm.mesh.instanceColor!.needsUpdate = true;
-    this.onPick(tm.elements[id], tm.type);
+    const el = tm.elements[id];
+
+    // one click selects the whole wall-frame segment / truss the member
+    // belongs to; members without either stay a single-element selection
+    const groupKind: PickInfo["groupKind"] =
+      el.segment_id ? "segment" : el.truss_id ? "truss" : "element";
+    const groupId =
+      groupKind === "segment" ? el.segment_id :
+      groupKind === "truss" ? el.truss_id : "";
+    this.selected = [{ tm, id }];
+    const group: BimElement[] = [el];
+    if (groupKind !== "element") {
+      this.typeMeshes.forEach((other) => {
+        other.elements.forEach((candidate, i) => {
+          if (other === tm && i === id) return;
+          const match = groupKind === "segment"
+            ? candidate.segment_id === groupId
+            : candidate.truss_id === groupId;
+          if (match) {
+            this.selected.push({ tm: other, id: i });
+            group.push(candidate);
+          }
+        });
+      });
+    }
+    this.reapplyHighlight();
+    this.onPick({ element: el, type: tm.type, group, groupKind, groupId });
   }
 
   private clearHighlight(): void {
-    if (!this.selected) return;
-    const tm = this.typeMeshes.get(this.selected.mesh.name)!;
-    tm.mesh.setColorAt(this.selected.id,
-      elementColor(tm.elements[this.selected.id], tm.type, this.mode));
-    tm.mesh.instanceColor!.needsUpdate = true;
-    this.selected = null;
+    const touched = new Set<THREE.InstancedMesh>();
+    for (const { tm, id } of this.selected) {
+      tm.mesh.setColorAt(id, elementColor(tm.elements[id], tm.type, this.mode));
+      touched.add(tm.mesh);
+    }
+    touched.forEach((mesh) => mesh.instanceColor!.needsUpdate = true);
+    this.selected = [];
   }
 
   private reapplyHighlight(): void {
-    if (!this.selected) return;
-    this.selected.mesh.setColorAt(this.selected.id, new THREE.Color("#ffffff"));
-    this.selected.mesh.instanceColor!.needsUpdate = true;
+    const touched = new Set<THREE.InstancedMesh>();
+    this.selected.forEach(({ tm, id }, index) => {
+      tm.mesh.setColorAt(id, index === 0 ? CLICKED_COLOR : GROUP_COLOR);
+      touched.add(tm.mesh);
+    });
+    touched.forEach((mesh) => mesh.instanceColor!.needsUpdate = true);
   }
 }

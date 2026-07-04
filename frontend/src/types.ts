@@ -157,6 +157,16 @@ export interface BimModel {
 
 export type ColorMode = "function" | "material" | "realistic";
 
+/** Result of clicking the 3D view: the member hit plus its whole
+ *  wall-frame segment or truss (single member when it has neither). */
+export interface PickInfo {
+  element: BimElement;
+  type: ElementType;
+  group: BimElement[]; // includes element; length >= 1
+  groupKind: "segment" | "truss" | "element";
+  groupId: string; // segment_id | truss_id | ""
+}
+
 export type SidebarSection =
   "specs" | "bom" | "pricing" | "imports" |
   "wall" | "truss" | "settings";

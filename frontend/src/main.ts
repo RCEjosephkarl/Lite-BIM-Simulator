@@ -52,9 +52,9 @@ const panel = new Panel(sidebar.getSection("specs"), {
 });
 
 panel.syncParams(params);
-viewer.onPick = (element, type) => {
-  panel.showElement(element, type);
-  if (element) sidebar.open("specs");
+viewer.onPick = (info) => {
+  panel.showSelection(info);
+  if (info) sidebar.open("specs");
 };
 
 importsPanel.onModel = setModel;

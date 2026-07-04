@@ -1,7 +1,7 @@
 import { MATERIAL_LEGEND } from "./colors";
 import { DEFAULT_PARAMS, MATERIAL_OPTIONS, TREATMENT_OPTIONS } from "./types";
 import type {
-  BimElement, BimModel, ColorMode, ElementType, ModelParams,
+  BimElement, BimModel, ColorMode, ElementType, ModelParams, PickInfo,
 } from "./types";
 
 const SPACING_OPTIONS = [300, 400, 450, 480, 600, 900, 1200];
@@ -184,8 +184,9 @@ export class Panel {
       </section>
 
       <section>
-        <h2>Selected element</h2>
-        <div id="info" class="info">Click a member in the 3D view.</div>
+        <h2>Selection</h2>
+        <div id="info" class="info">Click a member in the 3D view to select
+          its whole wall frame or truss.</div>
       </section>
 
       <button id="export" class="export">Export BOM CSV - timber only</button>
@@ -456,7 +457,7 @@ export class Panel {
     this.model = model;
     this.renderLayers();
     this.renderLegend();
-    this.showElement(null, null);
+    this.showSelection(null);
     this.populateStudTargets();
 
     const timber = model.elements.filter((el) => {
@@ -519,11 +520,76 @@ export class Panel {
           ${t.name}<b>${counts.get(t.code)}</b></div>`).join("");
   }
 
-  showElement(el: BimElement | null, type: ElementType | null): void {
-    if (!el || !type) {
-      this.infoEl.innerHTML = "Click a member in the 3D view.";
+  showSelection(info: PickInfo | null): void {
+    if (!info) {
+      this.infoEl.innerHTML = "Click a member in the 3D view to select " +
+        "its whole wall frame or truss.";
       return;
     }
+    const group = info.groupKind === "element"
+      ? "" : this.groupSummary(info);
+    const divider = group
+      ? `<h3 class="info-divider">Clicked member</h3>` : "";
+    this.infoEl.innerHTML =
+      group + divider + this.elementDetail(info.element, info.type);
+  }
+
+  /** Aggregate wall-frame / truss metadata for a group selection. */
+  private groupSummary(info: PickInfo): string {
+    const { element, group, groupKind, groupId } = info;
+    const sizes = [...new Set(group.map((e) => e.size))].join(", ");
+    const materials = [...new Set(group.map((e) => e.material))].join(", ");
+    const linealM = group.reduce(
+      (sum, e) => sum + e.length_mm * e.plies, 0) / 1000;
+    const cost = group.reduce((sum, e) =>
+      sum + (e.unit_price_usd_per_lm ?? 0)
+        * (e.length_mm / 1000) * e.plies, 0);
+    let rows: [string, string][];
+    let title: string;
+    if (groupKind === "segment") {
+      title = "Selected wall frame";
+      const seg = this.model?.meta.frame_segments.find(
+        (s) => s.segment_id === groupId);
+      rows = [
+        ["Segment", `${groupId}${element.segment_label
+          ? ` · ${element.segment_label}` : ""}`],
+        ["Storey", String(seg?.storey ?? element.storey)],
+        ["Length", seg ? `${(seg.length_mm / 1000).toFixed(2)} m` : "—"],
+        ["Exterior", seg ? (seg.exterior ? "Yes" : "No") : "—"],
+        ["Openings", seg ? String(seg.openings) : "—"],
+        ["Stud spacing", element.stud_spacing_mm !== null
+          ? `${element.stud_spacing_mm} mm crs` : "—"],
+        ["Stud material", seg?.material ?? materials],
+        ["Plies", String(seg?.plies ?? element.plies)],
+        ["Treatment", seg?.treatment ?? element.treatment],
+      ];
+    } else {
+      title = "Selected truss";
+      rows = [
+        ["Truss", `${groupId}${element.truss_label
+          ? ` · ${element.truss_label}` : ""}`],
+        ["Storey", String(element.storey)],
+        ["Span", element.span_mm !== null
+          ? `${(element.span_mm / 1000).toFixed(2)} m` : "—"],
+        ["Pitch", element.pitch_deg !== null
+          ? `${element.pitch_deg}°` : "—"],
+        ["Spacing", element.spacing_mm !== null
+          ? `${element.spacing_mm} mm crs` : "—"],
+        ["Materials", materials],
+      ];
+    }
+    rows.push(
+      ["Members", String(group.length)],
+      ["Timber sizes", sizes],
+      ["Lineal metres", `${linealM.toFixed(1)} m`],
+      ["Est. cost", cost > 0 ? `US$${cost.toFixed(2)}` : "—"],
+    );
+    return `<h3 class="info-divider">${title}</h3>` +
+      rows.map(([k, v]) =>
+        `<div class="row"><span>${k}</span><b>${v}</b></div>`).join("");
+  }
+
+  private elementDetail(el: BimElement, type: ElementType): string {
     const price = el.unit_price_usd_per_lm;
     const estCost = price !== null
       ? (el.length_mm / 1000) * el.plies * price : null;
@@ -555,9 +621,8 @@ export class Panel {
         `<a href="${el.price_source_url}" target="_blank" rel="noopener">` +
         `${el.price_source_name}</a> — estimating only</div>`
       : "";
-    this.infoEl.innerHTML =
-      rows.map(([k, v]) => `<div class="row"><span>${k}</span><b>${v}</b></div>`)
-        .join("") +
+    return rows.map(([k, v]) =>
+      `<div class="row"><span>${k}</span><b>${v}</b></div>`).join("") +
       source +
       (el.warnings?.length
         ? `<div class="warn">${el.warnings.join("<br>")}</div>` : "") +
