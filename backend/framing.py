@@ -683,6 +683,7 @@ def generate(cfg: ModelConfig | None = None) -> GenerateResult:
 
     upper_poly = [(g.ft(x), g.ft(y)) for x, y in g.UPPER_POLY_FT]
     full_poly = [(g.ft(x), g.ft(y)) for x, y in g.EXTERIOR_POLY_FT]
+    envelope_warns: list[str] = []
 
     for s in range(1, storeys + 1):
         z = (s - 1) * nz.STOREY_RISE
@@ -705,9 +706,14 @@ def generate(cfg: ModelConfig | None = None) -> GenerateResult:
             wall_note = note
             if spacing != nzs_default:
                 wall_note = (f"{note}; " if note else "") + CUSTOM_SPACING_NOTE
+            seg_len = round(math.hypot(w.x2 - w.x1, w.y2 - w.y1), 1)
+            if seg_len > 6000:
+                envelope_warns.append(
+                    f"{seg_id}: wall length {seg_len / 1000:.1f} m exceeds "
+                    "the 6 m x 3 m frame envelope — verify panel joins")
             segments.append(dict(
                 segment_id=seg_id, storey=s, label=label,
-                length_mm=round(math.hypot(w.x2 - w.x1, w.y2 - w.y1), 1),
+                length_mm=seg_len,
                 exterior=w.exterior, openings=len(w.openings),
                 material=materials.display_name(mat_key),
                 spacing_mm=spacing, plies=plies,
@@ -735,7 +741,8 @@ def generate(cfg: ModelConfig | None = None) -> GenerateResult:
                              cfg.gable_spacing, note, material=gable_mat)
     frame_porch(els, note)
 
-    warnings = list(cfg.warnings()) + list(cfg.override_warnings)
+    warnings = (list(cfg.warnings()) + list(cfg.override_warnings)
+                + envelope_warns)
     if cfg.has_spacing_override():
         warnings.append(CUSTOM_SPACING_NOTE)
     known = {sg["segment_id"] for sg in segments}

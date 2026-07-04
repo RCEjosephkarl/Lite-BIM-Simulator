@@ -78,7 +78,8 @@ def test_default_model_backwards_compatible():
     studs = of_type(m, {"stud"})
     assert studs and all(e["h_mm"] == 45 for e in studs)
     assert m["meta"]["frame_segments"][0]["segment_id"] == "G-EXT-001"
-    assert m["meta"]["warnings"] == []
+    # long sample walls carry envelope notes; nothing else should warn
+    assert all("6 m x 3 m" in w for w in m["meta"]["warnings"])
 
 
 def test_old_params_still_work():
@@ -312,6 +313,32 @@ def test_manual_truss_preview_returns_chord_and_web_elements():
     assert "truss_top_chord" in codes
     assert "truss_bottom_chord" in codes
     assert "truss_web" in codes
+
+
+def test_manual_wall_envelope_6m_by_3m_interchangeable():
+    too_long = {**manual_wall_payload(), "end_x_mm": 7000}
+    r = client.post("/api/manual/wall-frame/preview", json=too_long)
+    assert r.status_code == 422
+    assert "6 m x 3 m" in r.text
+
+    too_tall = {**manual_wall_payload(), "end_x_mm": 4000,
+                "wall_height_mm": 3500}
+    r = client.post("/api/manual/wall-frame/preview", json=too_tall)
+    assert r.status_code == 422
+
+    rotated = {**manual_wall_payload(), "end_x_mm": 2500,
+               "wall_height_mm": 5500}
+    r = client.post("/api/manual/wall-frame/preview", json=rotated)
+    assert r.status_code == 200, r.text
+
+
+def test_generated_walls_over_6m_warn():
+    m = get_model()
+    long_segments = [s for s in m["meta"]["frame_segments"]
+                     if s["length_mm"] > 6000]
+    envelope_warnings = [w for w in m["meta"]["warnings"]
+                         if "6 m x 3 m" in w]
+    assert len(envelope_warnings) == len(long_segments)
 
 
 def test_wall_treatment_override():

@@ -55,6 +55,12 @@ class ManualWallFrameInput(BaseModel):
             self.end_z_mm - self.start_z_mm)
         if length < 300:
             raise ValueError("wall must be at least 300 mm long")
+        height = self.wall_height_mm
+        if not ((length <= 6000 and height <= 3000)
+                or (length <= 3000 and height <= 6000)):
+            raise ValueError(
+                f"wall frame {length / 1000:.2f} m x {height / 1000:.2f} m "
+                "exceeds the 6 m x 3 m envelope (dimensions interchangeable)")
         for opening in self.openings:
             if opening.start_offset_mm + opening.width_mm > length:
                 raise ValueError(
