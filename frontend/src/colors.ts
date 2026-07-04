@@ -7,6 +7,9 @@ const MATERIAL_COLORS: Record<string, string> = {
   SG10: "#d9a13f", // higher-grade radiata
   Prolam: "#b07a45", // branded glulam
   Glulam: "#8a5a2b", // generic glue-laminated
+  GL8: "#a06a35", // glulam strength grades
+  GL10: "#93601f",
+  GL12: "#7c4a1a",
   HyCHORD: "#7f8fc9", // LVL (cool tones)
   HySPAN: "#5b6fb5",
   Hy90: "#9b7fc9",
@@ -44,6 +47,9 @@ export const MATERIAL_LEGEND = [
   { label: "SG10 (sawn radiata)", hex: MATERIAL_COLORS.SG10 },
   { label: "Prolam (glulam)", hex: MATERIAL_COLORS.Prolam },
   { label: "Glulam (generic)", hex: MATERIAL_COLORS.Glulam },
+  { label: "GL8 (glulam grade)", hex: MATERIAL_COLORS.GL8 },
+  { label: "GL10 (glulam grade)", hex: MATERIAL_COLORS.GL10 },
+  { label: "GL12 (glulam grade)", hex: MATERIAL_COLORS.GL12 },
   { label: "HyCHORD (LVL)", hex: MATERIAL_COLORS.HyCHORD },
   { label: "HySPAN (LVL)", hex: MATERIAL_COLORS.HySPAN },
   { label: "Hy90 (LVL)", hex: MATERIAL_COLORS.Hy90 },

@@ -131,6 +131,70 @@ MATERIALS: dict[str, Material] = {
                       "cross-section area from a 240x90 laminated radiata "
                       "beam retail rate (154 x 4050/21600 = 28.88 NZD/lm).",
     ),
+    "gl8": Material(
+        key="gl8", display_name="GL8", category="glulam",
+        typical_sizes_mm=("90x45", "140x45", "190x45", "240x90"),
+        default_size_mm="90x45",
+        default_usd_per_lm=_usd(28.88),
+        price_confidence="low",
+        price_source_name="Mitre 10 NZ — laminated radiata beams (generic)",
+        price_source_url="https://www.mitre10.co.nz/shop/building-hardware/"
+                         "timber/structural-framing/structural-framing/"
+                         "laminated-radiata-beams/c/RC61530",
+        price_source_date="2026-06-11",
+        source_currency="NZD", source_price=154.0,
+        source_unit="NZD per lineal metre (240x90 laminated beam, incl. GST)",
+        pricing_notes="GL8 grade priced at the generic laminated radiata "
+                      "beam rate (retail GL8 pieces are quote-only); 90x45 "
+                      "base scaled by cross-section area from the 240x90 "
+                      "rate, other sizes scaled linearly by area.",
+        size_prices_usd_per_lm={
+            "90x45": _usd(28.88), "140x45": _usd(44.92),
+            "190x45": _usd(60.97), "240x90": _usd(154.0),
+        },
+    ),
+    "gl10": Material(
+        key="gl10", display_name="GL10", category="glulam",
+        typical_sizes_mm=("90x45", "140x45", "190x45", "240x90"),
+        default_size_mm="90x45",
+        default_usd_per_lm=_usd(31.77),
+        price_confidence="low",
+        price_source_name="Mitre 10 NZ — laminated radiata beams (generic)",
+        price_source_url="https://www.mitre10.co.nz/shop/building-hardware/"
+                         "timber/structural-framing/structural-framing/"
+                         "laminated-radiata-beams/c/RC61530",
+        price_source_date="2026-06-11",
+        source_currency="NZD", source_price=154.0,
+        source_unit="NZD per lineal metre (240x90 laminated beam, incl. GST)",
+        pricing_notes="GL10 grade estimated at 1.10 x the generic laminated "
+                      "radiata beam rate (no public GL10 lineal pricing); "
+                      "sizes scaled linearly by cross-section area.",
+        size_prices_usd_per_lm={
+            "90x45": _usd(31.77), "140x45": _usd(49.42),
+            "190x45": _usd(67.07), "240x90": _usd(169.42),
+        },
+    ),
+    "gl12": Material(
+        key="gl12", display_name="GL12", category="glulam",
+        typical_sizes_mm=("90x45", "140x45", "190x45", "240x90"),
+        default_size_mm="90x45",
+        default_usd_per_lm=_usd(36.10),
+        price_confidence="low",
+        price_source_name="Mitre 10 NZ — laminated radiata beams (generic)",
+        price_source_url="https://www.mitre10.co.nz/shop/building-hardware/"
+                         "timber/structural-framing/structural-framing/"
+                         "laminated-radiata-beams/c/RC61530",
+        price_source_date="2026-06-11",
+        source_currency="NZD", source_price=154.0,
+        source_unit="NZD per lineal metre (240x90 laminated beam, incl. GST)",
+        pricing_notes="GL12 grade estimated at 1.25 x the generic laminated "
+                      "radiata beam rate (no public GL12 lineal pricing); "
+                      "sizes scaled linearly by cross-section area.",
+        size_prices_usd_per_lm={
+            "90x45": _usd(36.10), "140x45": _usd(56.16),
+            "190x45": _usd(76.21), "240x90": _usd(192.53),
+        },
+    ),
     "hychord": Material(
         key="hychord", display_name="HyCHORD", category="lvl",
         typical_sizes_mm=("90x45", "140x45", "190x45"),

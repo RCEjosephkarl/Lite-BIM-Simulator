@@ -163,6 +163,7 @@ def test_materials_endpoint_complete():
     cat = r.json()
     mats = {m["key"]: m for m in cat["materials"]}
     assert set(mats) == {"sg8", "sg10", "prolam", "glulam",
+                         "gl8", "gl10", "gl12",
                          "hychord", "hyspan", "hy90"}
     for m in mats.values():
         assert m["display_name"]
