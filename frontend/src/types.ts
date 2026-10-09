@@ -44,6 +44,27 @@ export interface BimElement {
   pitch_deg: number | null;
   span_mm: number | null;
   spacing_mm: number | null;
+  layout_id: string;
+  instance_id: string;
+  truss_type: string;
+  member_role: string;
+  start_node: string;
+  end_node: string;
+  engineering_status: string;
+  panel_id: string;
+  joint_id: string;
+  opening_id: string;
+  physical_member_id: string;
+  exterior: boolean | null;
+  load_bearing: boolean | null;
+  cut_length_mm: number | null;
+  price_source_date: string;
+  price_currency: string;
+  price_source_currency: string;
+  price_fx_rate: number | null;
+  price_fx_date: string;
+  price_fx_source: string;
+  pricing_notes: string;
 }
 
 /** Stud material options (internal key, display name). */
@@ -109,7 +130,11 @@ export interface FrameSegment {
   storey: number;
   label: string;
   length_mm: number;
-  exterior: boolean;
+  exterior: boolean | null;
+  load_bearing: boolean | null;
+  panel_count: number;
+  source: string;
+  source_id: string;
   openings: number;
   material: string; // effective material display name
   spacing_mm: number; // effective stud spacing
@@ -125,6 +150,16 @@ export interface CostGroup {
 export interface CostSummary {
   currency: string;
   grand_total_usd: number;
+  stock_total_usd: number;
+  estimate_complete: boolean;
+  stock_identity_complete: boolean;
+  cut_board_m: number;
+  stock_board_m: number;
+  special_order_board_quantity: number;
+  coverage: { timber_members: number; unpriced_members: number; cut_quantity: number;
+    physical_board_quantity: number; unpriced_cut_quantity: number;
+    unpriced_board_quantity: number; unknown_cut_identity_quantity: number };
+  basis: string;
   by_material: CostGroup[];
   by_storey: CostGroup[];
   by_segment: CostGroup[];
@@ -133,6 +168,11 @@ export interface CostSummary {
 }
 
 export interface ModelMeta {
+  preview_wall_dimensions?: WallDimensionIntent;
+  review: ModelReview;
+  home_definition?: { levels: { id: string; number: number; elevation_mm: number }[]; roofs: { id: string; shape: string; system: string }[] } | null;
+  project: { project_id: string; name: string; revision: number; geometry_mode: "sample" | "custom" | "mixed"; schema_version: number };
+  params: ModelParams;
   storeys: number;
   roof: "gable" | "hip";
   wind_zone: string;
@@ -146,6 +186,30 @@ export interface ModelMeta {
   units: string;
   standard: string;
   warnings: string[];
+  disclaimer: string;
+}
+
+export interface RuleCheck {
+  id?: string;
+  code: string;
+  status: "reference_only" | "evaluated_within_assumptions" | "requires_specific_design" | "not_evaluated";
+  message: string;
+  severity: string;
+  next_action: string;
+  rule_reference?: string;
+  rule_version?: number;
+  assumptions?: string;
+  source?: string;
+  source_id?: string;
+  entity_id?: string;
+  element_id?: number | null;
+  occurrences: number;
+}
+export interface ModelReview {
+  profile: { id: string; version: number; jurisdiction: string; review_status: string; structural_approval: false };
+  overall_status: RuleCheck["status"];
+  project_revision: number;
+  checks: RuleCheck[];
   disclaimer: string;
 }
 
@@ -172,6 +236,7 @@ export type SidebarSection =
   "wall" | "truss" | "settings";
 
 export interface BomRow {
+  member_ids: number[];
   category: string;
   element: string;
   storey: number;
@@ -183,18 +248,42 @@ export interface BomRow {
   plies: number;
   stock_length_m: number;
   qty: number;
+  physical_qty: number;
+  section_size: string;
+  section_plies: number;
+  cut_board_m: number;
+  stock_board_m: number;
+  stock_cost_usd: number | null;
+  estimate_complete: boolean;
+  cut_identity_status: string;
   total_length_m: number;
   total_effective_length_m: number;
   effective_length_m: number;
   unit_price_usd_per_lm: number | null;
-  total_cost_usd: number;
-  estimated_cost_usd: number;
+  total_cost_usd: number | null;
+  estimated_cost_usd: number | null;
   price_confidence: string;
   price_source_name: string;
   price_source_url: string;
   nzs_ref: string;
   notes: string;
   pricing_notes: string;
+  price_source_date: string;
+  price_currency: string;
+  price_source_currency: string;
+  price_fx_rate: number | null;
+  price_fx_date: string;
+  price_fx_source: string;
+}
+
+export interface BomScope {
+  member_id: number;
+  source: string;
+  source_id: string;
+  storey: number;
+  kind: "wall" | "truss" | "cut" | "member";
+  assembly_id: string | number;
+  label: string;
 }
 
 export interface PricingRow {
@@ -207,6 +296,9 @@ export interface PricingRow {
   source_name: string;
   source_date: string;
   source_url: string;
+  source_currency: string;
+  fx_rate: number;
+  fx_date: string;
   notes: string;
 }
 
@@ -222,7 +314,7 @@ export interface CsvPlanRow {
 export interface CsvValidationResult {
   rows: CsvPlanRow[];
   normalized_entities: CsvPlanRow[];
-  errors: { row: number; message: string }[];
+  errors: { row: number; field?: string; message: string }[];
   warnings: { row: number; message: string }[];
   summary: {
     wall_count: number;
@@ -246,6 +338,11 @@ export interface ImportBatch {
   rejected_count: number;
   warning_count: number;
 }
+
+export type AssemblyDefinition =
+  | { definition_id: string; kind: "manual_wall"; payload: ManualWallFrameInput }
+  | { definition_id: string; kind: "manual_truss"; payload: ManualTrussInput & { topology?: unknown } }
+  | { definition_id: string; kind: "csv_import"; payload: { rows: CsvPlanRow[]; units: "mm" } };
 
 export interface ManualOpening {
   opening_id: string;
@@ -272,6 +369,9 @@ export interface ManualWallFrameInput {
   wall_thickness_mm: number;
   stud_size: string;
   stud_material: string;
+  plate_material: string;
+  lintel_material: string;
+  panelize: boolean;
   stud_spacing_mm: number;
   plies: number;
   bottom_plate_size: string;
@@ -324,15 +424,32 @@ export interface ManualTrussInput {
   members: TrussMember[];
 }
 
+export interface WallDimensionIntent {
+  span_mm:number; height_mm:number; direction_deg:number; level:number; elevation_mm:number;
+  openings:ManualOpening[];
+}
 export interface PreviewResult {
+  replace_all?: boolean;
+  replace_generated?: boolean;
+  replace_source_id?: string;
+  replace_source_type?: string;
   elements: BimElement[];
   types: ElementType[];
   metadata: {
+    wall_dimensions?: WallDimensionIntent;
+    review: ModelReview;
     temporary: boolean;
     member_count: number;
     lineal_metres: number;
     estimated_cost_usd: number;
+    estimated_stock_cost_usd: number;
+    estimate_complete: boolean;
+    cut_quantity: number;
+    physical_board_quantity: number;
+    unpriced_cut_quantity: number;
+    cut_board_metres: number;
+    stock_board_metres: number;
+    frame_segments: FrameSegment[];
     warnings: string[];
   };
 }
-

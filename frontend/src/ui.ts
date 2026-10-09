@@ -1,8 +1,11 @@
+import { escapeHtml, safeUrl } from "./dom";
 import { MATERIAL_LEGEND } from "./colors";
 import { DEFAULT_PARAMS, MATERIAL_OPTIONS, TREATMENT_OPTIONS } from "./types";
 import type {
   BimElement, BimModel, ColorMode, ElementType, ModelParams, PickInfo,
 } from "./types";
+import { defaultView } from "./workspaceState";
+import type { ViewPreferences } from "./workspaceState";
 
 const SPACING_OPTIONS = [300, 400, 450, 480, 600, 900, 1200];
 
@@ -45,6 +48,7 @@ const SNOW_OPTIONS: [string, string][] = [
 ];
 
 export class Panel {
+  private view = defaultView();
   private root: HTMLElement;
   private legendEl!: HTMLElement;
   private infoEl!: HTMLElement;
@@ -73,6 +77,7 @@ export class Panel {
 
       <section>
         <h2>Storeys</h2>
+        <p id="home-design-note" hidden></p>
         <div class="seg" id="storeys">
           ${[1, 2, 3].map((n) =>
             `<button data-n="${n}" class="${n === 1 ? "on" : ""}">${n}</button>`).join("")}
@@ -196,6 +201,10 @@ export class Panel {
     this.legendEl = this.q("#legend");
     this.infoEl = this.q("#info");
     this.statsEl = this.q("#stats");
+    for(const [id,label] of [["storeys","Storeys"],["roof","Roof style"],["mode","Colour mode"],["stud-scope","Stud override scope"]]){
+      this.q(`#${id}`).setAttribute("role","group");this.q(`#${id}`).setAttribute("aria-label",label);
+      this.segSelect(`#${id}`,this.q(`#${id} button.on`));
+    }
 
     this.q("#autorotate").addEventListener("change", () =>
       this.cb.onAutoRotate(this.q<HTMLInputElement>("#autorotate").checked));
@@ -398,14 +407,32 @@ export class Panel {
     const seg = this.q<HTMLSelectElement>("#stud-segment");
     const keepSeg = seg.value;
     seg.innerHTML = m.frame_segments
-      .map((s) => `<option value="${s.segment_id}">` +
-        `${s.label} — ${(s.length_mm / 1000).toFixed(2)} m</option>`)
+      .filter(s => s.source === "generated")
+      .map((s) => `<option value="${escapeHtml(s.segment_id)}">` +
+        `${escapeHtml(s.label)} — ${(s.length_mm / 1000).toFixed(2)} m</option>`)
       .join("");
     if ([...seg.options].some((o) => o.value === keepSeg)) seg.value = keepSeg;
     this.refreshStudControls();
   }
 
   /** Reflect externally-set params (defaults / URL) in the controls. */
+  setWorkspaceBusy(busy: boolean): void {
+    this.root.querySelectorAll<HTMLInputElement | HTMLButtonElement | HTMLSelectElement>("input,button,select").forEach(control => control.disabled = busy);
+  }
+  setInspectionModel(model: BimModel): void { this.model = model; }
+  syncView(view: ViewPreferences): void {
+    this.view=view;this.mode=view.mode;
+    this.q<HTMLInputElement>("#autorotate").checked=view.autoRotate;
+    this.segSelect("#mode",this.q(`#mode [data-m="${view.mode}"]`));
+    const source=this.q<HTMLSelectElement>("#source-filter");
+    const sources=[...new Set(this.model?.elements.map(m=>m.source)??[])];
+    source.replaceChildren(new Option("All sources",""),...sources.map(s=>new Option(s,s)));
+    source.value=view.source;this.renderLayers();this.renderLegend();
+  }
+  revealCategory(category:string): void {
+    this.cb.onCategory(category,true);
+  }
+
   syncParams(p: ModelParams): void {
     this.params = { ...p };
     this.segSelect("#storeys", this.q(`#storeys button[data-n="${p.storeys}"]`));
@@ -449,12 +476,16 @@ export class Panel {
   }
 
   private segSelect(group: string, btn: HTMLElement): void {
-    this.q(group).querySelectorAll("button").forEach((b) =>
-      b.classList.toggle("on", b === btn));
+    this.q(group).querySelectorAll("button").forEach((b) => {
+      b.classList.toggle("on",b===btn);b.setAttribute("aria-pressed",String(b===btn));
+    });
   }
 
   setModel(model: BimModel): void {
     this.model = model;
+    const note=this.q<HTMLElement>("#home-design-note");
+    note.hidden=!(model.meta.project.geometry_mode === "custom" && model.meta.home_definition);
+    if(!note.hidden)note.textContent=`This design has ${model.meta.home_definition!.levels.length} explicit levels. Edit levels and roof shapes/framing in Imports → Edit current definition. Building Specs applies inherited wall materials, spacing, plies and exposure settings.`;
     this.renderLayers();
     this.renderLegend();
     this.showSelection(null);
@@ -465,11 +496,13 @@ export class Panel {
       return t && t.category !== "concrete";
     });
     const totalLm = timber.reduce((s, el) => s + el.length_mm, 0) / 1000;
-    const cost = model.meta.cost_summary?.grand_total_usd;
+    const summary = model.meta.cost_summary;
+    const cost = summary.grand_total_usd;
     this.statsEl.textContent =
       `${timber.length} timber members · ${totalLm.toFixed(0)} lineal metres` +
-      (cost ? ` · est. US$${cost.toLocaleString("en-US", {
-        maximumFractionDigits: 0 })} materials` : "");
+      ` · ${summary.coverage.physical_board_quantity} boards · priced cut subtotal US$${cost.toLocaleString("en-US", {
+        maximumFractionDigits: 0 })}` +
+      (summary.estimate_complete ? "" : ` · ${summary.coverage.unpriced_board_quantity} unpriced boards`);
 
     const m = model.meta;
     const studs = m.stud_spacing_mm
@@ -481,13 +514,13 @@ export class Panel {
       `Studs ${studs} crs — wind: ${wind} · ` +
       `Rafters @ ${m.rafter_spacing_mm} crs — snow: ${m.snow_zone}`;
     this.q("#warnings").innerHTML =
-      m.warnings.map((w) => `Warning: ${w}`).join("<br>");
+      m.warnings.map((w) => `Warning: ${escapeHtml(w)}`).join("<br>");
     this.q("#disclaimer").textContent = m.disclaimer;
     const source = this.q<HTMLSelectElement>("#source-filter");
     const selected = source.value;
     const sources = [...new Set(model.elements.map((element) => element.source))];
     source.innerHTML = `<option value="">All sources</option>` +
-      sources.map((value) => `<option value="${value}">${value}</option>`).join("");
+      sources.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
     if (sources.includes(selected as BimElement["source"])) source.value = selected;
   }
 
@@ -496,11 +529,12 @@ export class Panel {
     const cats = [...new Set(this.model.types.map((t) => t.category))];
     const el = this.q("#layers");
     el.innerHTML = cats.map((c) => `
-      <label class="layer"><input type="checkbox" checked data-c="${c}">
+      <label class="layer"><input type="checkbox" ${this.view.layers[c] !== false ? "checked" : ""} data-c="${c}">
         ${CATEGORY_LABELS[c] ?? c}</label>`).join("");
     el.querySelectorAll("input").forEach((input) =>
-      input.addEventListener("change", () =>
-        this.cb.onCategory(input.dataset.c!, input.checked)));
+      input.addEventListener("change", () => {
+        this.cb.onCategory(input.dataset.c!, input.checked);
+      }));
   }
 
   private renderLegend(): void {
@@ -531,7 +565,13 @@ export class Panel {
     const divider = group
       ? `<h3 class="info-divider">Clicked member</h3>` : "";
     this.infoEl.innerHTML =
-      group + divider + this.elementDetail(info.element, info.type);
+      group + divider + this.elementDetail(info.element, info.type) + this.reviewDetail(info.element);
+  }
+
+  private reviewDetail(element: BimElement): string {
+    const checks=this.model?.meta.review.checks.filter(c=>c.source===element.source && c.source_id===element.source_id
+      && (!c.entity_id || c.entity_id===(element.segment_id||element.truss_id||element.source_id)))??[];
+    return `<h3>Review basis</h3><p>Structural capacity and connections remain unchecked.</p>${checks.map(c=>`<p><strong>${escapeHtml(c.status.replaceAll("_"," "))}</strong> · ${escapeHtml(c.code)}<br>${escapeHtml(c.message)}<br>${escapeHtml(c.next_action)}</p>`).join("")}`;
   }
 
   /** Aggregate wall-frame / truss metadata for a group selection. */
@@ -544,18 +584,22 @@ export class Panel {
     const cost = group.reduce((sum, e) =>
       sum + (e.unit_price_usd_per_lm ?? 0)
         * (e.length_mm / 1000) * e.plies, 0);
+    const unpriced = group.filter(e => e.unit_price_usd_per_lm === null).length;
+    const cuts = new Set(group.map(e => e.physical_member_id || `row:${e.id}`));
     let rows: [string, string][];
     let title: string;
     if (groupKind === "segment") {
       title = "Selected wall frame";
       const seg = this.model?.meta.frame_segments.find(
-        (s) => s.segment_id === groupId);
+        (s) => s.segment_id === groupId && s.storey === element.storey && s.source === element.source && s.source_id === element.source_id);
       rows = [
         ["Segment", `${groupId}${element.segment_label
           ? ` · ${element.segment_label}` : ""}`],
         ["Storey", String(seg?.storey ?? element.storey)],
         ["Length", seg ? `${(seg.length_mm / 1000).toFixed(2)} m` : "—"],
-        ["Exterior", seg ? (seg.exterior ? "Yes" : "No") : "—"],
+        ["Exterior", seg?.exterior === null ? "Unknown" : seg ? (seg.exterior ? "Yes" : "No") : "—"],
+        ["Bearing intent", seg?.load_bearing === null ? "Unknown" : seg ? (seg.load_bearing ? "Yes" : "No") : "—"],
+        ["Fabrication panels", seg ? String(seg.panel_count) : "—"],
         ["Openings", seg ? String(seg.openings) : "—"],
         ["Stud spacing", element.stud_spacing_mm !== null
           ? `${element.stud_spacing_mm} mm crs` : "—"],
@@ -579,14 +623,14 @@ export class Panel {
       ];
     }
     rows.push(
-      ["Members", String(group.length)],
+      ["Visible segments / cuts", `${group.length} / ${cuts.size}`],
       ["Timber sizes", sizes],
       ["Lineal metres", `${linealM.toFixed(1)} m`],
-      ["Est. cost", cost > 0 ? `US$${cost.toFixed(2)}` : "—"],
+      ["Priced cut subtotal", `US$${cost.toFixed(2)}${unpriced ? ` · ${unpriced} unpriced segments` : ""}`],
     );
     return `<h3 class="info-divider">${title}</h3>` +
       rows.map(([k, v]) =>
-        `<div class="row"><span>${k}</span><b>${v}</b></div>`).join("");
+        `<div class="row"><span>${k}</span><b>${escapeHtml(v)}</b></div>`).join("");
   }
 
   private elementDetail(el: BimElement, type: ElementType): string {
@@ -606,26 +650,37 @@ export class Panel {
         ? `${el.stud_spacing_mm} mm crs` : "—"],
       ["Segment", el.segment_id
         ? `${el.segment_id} · ${el.segment_label}` : "—"],
+      ["Panel / joint", el.panel_id ? `${el.panel_id}${el.joint_id ? ` · ${el.joint_id}` : ""}` : "—"],
+      ["Opening", el.opening_id || "—"],
+      ["Exterior / bearing intent", el.exterior === null ? "—" : `${el.exterior ? "Exterior" : "Interior"} · ${el.load_bearing ? "Bearing" : "Non-bearing"}`],
       ["Truss", el.truss_id ? `${el.truss_id} · ${el.truss_label}` : "—"],
+      ["Layout / instance", el.layout_id ? `${el.layout_id} · ${el.instance_id}` : "—"],
+      ["Member role", el.member_role],
+      ["Nodes", el.start_node ? `${el.start_node} → ${el.end_node}` : "—"],
+      ["Engineering status", el.engineering_status],
       ["Source", `${el.source}${el.source_id ? ` · ${el.source_id}` : ""}`],
       ["Editable", el.editable ? "Yes" : "No"],
       ["Confidence", el.confidence === null ? "—" : el.confidence.toFixed(2)],
       ["Length", `${(el.length_mm / 1000).toFixed(2)} m`],
+      ["Physical cut", el.cut_length_mm === null ? "Single member / legacy identity" : `${(el.cut_length_mm / 1000).toFixed(3)} m · ${el.physical_member_id}`],
       ["Storey", String(el.storey)],
-      ["Unit price", price !== null ? `US$${price.toFixed(2)}/lm` : "—"],
-      ["Est. cost", estCost !== null ? `US$${estCost.toFixed(2)}` : "—"],
+      ["Unit price", price !== null ? `US$${price.toFixed(2)}/section lm` : "Unpriced"],
+      ["Segment cut cost", estCost !== null ? `US$${estCost.toFixed(2)}` : "Unpriced"],
+      ["Price source date", el.price_source_date || "Unknown / legacy"],
+      ["Price currency / FX", `${el.price_source_currency || 'Unknown'} → ${el.price_currency} · ${el.price_fx_rate ?? 'unknown'} · ${el.price_fx_date || 'no FX date'}`],
+      ["Price assumptions", el.pricing_notes || "Unknown / legacy"],
       ["NZS 3604:2011", type.nzs_ref],
     ];
     const source = el.price_confidence
-      ? `<div class="hint">Price: ${el.price_confidence} confidence · ` +
-        `<a href="${el.price_source_url}" target="_blank" rel="noopener">` +
-        `${el.price_source_name}</a> — estimating only</div>`
+      ? `<div class="hint">Price: ${escapeHtml(el.price_confidence)} confidence · ` +
+        `<a href="${escapeHtml(safeUrl(el.price_source_url))}" target="_blank" rel="noopener">` +
+        `${escapeHtml(el.price_source_name)}</a> — estimating only</div>`
       : "";
     return rows.map(([k, v]) =>
-      `<div class="row"><span>${k}</span><b>${v}</b></div>`).join("") +
+      `<div class="row"><span>${k}</span><b>${escapeHtml(v)}</b></div>`).join("") +
       source +
       (el.warnings?.length
-        ? `<div class="warn">${el.warnings.join("<br>")}</div>` : "") +
-      (el.note ? `<div class="warn">${el.note}</div>` : "");
+        ? `<div class="warn">${el.warnings.map(escapeHtml).join("<br>")}</div>` : "") +
+      (el.note ? `<div class="warn">${escapeHtml(el.note)}</div>` : "");
   }
 }

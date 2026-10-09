@@ -1,0 +1,4 @@
+type,level,segment_id,label,start_x_mm,start_z_mm,end_x_mm,end_z_mm,height_mm,wall_segment_id,opening_id,opening_type,start_offset_mm,center_offset_mm,width_mm,sill_height_mm,head_height_mm,truss_id,span_mm,pitch_deg,spacing_mm,quantity,direction_deg,overhang_mm,heel_height_mm
+wall,1,UNIT-W,Unit wall,0.0,0.0,3.6,0.0,2.535,,,,,,,,,,,,,,,,
+opening,1,,,,,,,1.2,UNIT-W,UNIT-O,window,,1.8,1.2,0.9,2.1,,,,,,,,
+truss,1,,Zero-overhang trusses,1.8,0.0,,,,,,,,,,,,UNIT-T,3.6,25,0.6,2,0,0.0,0.0

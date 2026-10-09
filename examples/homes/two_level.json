@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "units": "mm",
+  "rule_profile": "NZS3604:2011-conceptual",
+  "name": "Two-level home \u2014 offset upper footprint",
+  "levels": [
+    {
+      "id": "ground",
+      "number": 1,
+      "elevation_mm": 0,
+      "wall_height_mm": 2800
+    },
+    {
+      "id": "upper",
+      "number": 2,
+      "elevation_mm": 4100,
+      "wall_height_mm": 2900
+    }
+  ],
+  "walls": [
+    {
+      "id": "ground-1",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "ground-1",
+        "start_x_mm": 0,
+        "start_z_mm": 0,
+        "end_x_mm": 9000,
+        "end_z_mm": 0,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "ground-2",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "ground-2",
+        "start_x_mm": 9000,
+        "start_z_mm": 0,
+        "end_x_mm": 9000,
+        "end_z_mm": 6000,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "ground-3",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "ground-3",
+        "start_x_mm": 9000,
+        "start_z_mm": 6000,
+        "end_x_mm": 0,
+        "end_z_mm": 6000,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "ground-4",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "ground-4",
+        "start_x_mm": 0,
+        "start_z_mm": 6000,
+        "end_x_mm": 0,
+        "end_z_mm": 0,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "upper-1",
+      "level_id": "upper",
+      "spec": {
+        "segment_label": "upper-1",
+        "start_x_mm": 1000,
+        "start_z_mm": 500,
+        "end_x_mm": 7000,
+        "end_z_mm": 500,
+        "wall_height_mm": 2900,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "upper-2",
+      "level_id": "upper",
+      "spec": {
+        "segment_label": "upper-2",
+        "start_x_mm": 7000,
+        "start_z_mm": 500,
+        "end_x_mm": 7000,
+        "end_z_mm": 5000,
+        "wall_height_mm": 2900,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "upper-3",
+      "level_id": "upper",
+      "spec": {
+        "segment_label": "upper-3",
+        "start_x_mm": 7000,
+        "start_z_mm": 5000,
+        "end_x_mm": 1000,
+        "end_z_mm": 5000,
+        "wall_height_mm": 2900,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "upper-4",
+      "level_id": "upper",
+      "spec": {
+        "segment_label": "upper-4",
+        "start_x_mm": 1000,
+        "start_z_mm": 5000,
+        "end_x_mm": 1000,
+        "end_z_mm": 500,
+        "wall_height_mm": 2900,
+        "panelize": true,
+        "exterior": true
+      }
+    }
+  ],
+  "floors": [
+    {
+      "id": "upper-platform",
+      "level_id": "ground",
+      "boundary_mm": [
+        [
+          1000,
+          500
+        ],
+        [
+          7000,
+          500
+        ],
+        [
+          7000,
+          5000
+        ],
+        [
+          1000,
+          5000
+        ]
+      ],
+      "spacing_mm": 450,
+      "first_offset_mm": 225,
+      "elevation_offset_mm": 2800,
+      "supports": [
+        {
+          "id": "short-support",
+          "start_mm": [
+            4000,
+            500
+          ],
+          "end_mm": [
+            4000,
+            2750
+          ]
+        }
+      ]
+    },
+    {
+      "id": "upper-ceiling",
+      "level_id": "upper",
+      "purpose": "ceiling",
+      "boundary_mm": [
+        [
+          1000,
+          500
+        ],
+        [
+          7000,
+          500
+        ],
+        [
+          7000,
+          5000
+        ],
+        [
+          1000,
+          5000
+        ]
+      ],
+      "spacing_mm": 600,
+      "first_offset_mm": 300
+    }
+  ],
+  "roofs": [
+    {
+      "id": "upper-roof",
+      "level_id": "upper",
+      "minimum_mm": [
+        1000,
+        500
+      ],
+      "maximum_mm": [
+        7000,
+        5000
+      ],
+      "ridge_axis": "x",
+      "shape": "gable",
+      "system": "truss",
+      "spacing_mm": 900,
+      "bearing_wall_ids": [
+        "upper-1",
+        "upper-3"
+      ]
+    }
+  ]
+}

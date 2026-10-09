@@ -1,0 +1,201 @@
+{
+  "recorded_at": "2026-10-09T11:42:27.342644+00:00",
+  "baseline_review_sha256": "bc8957ad9aaa61eaa0adc9f4739f77560149a257403c68eb71c05a7977aaeec7",
+  "fixtures": [
+    {
+      "id": "rectangle",
+      "member_count": 271,
+      "review_and_full_response_equal": true,
+      "database_bytes_preserved": true,
+      "baseline_evaluate_ms": {
+        "samples": 5,
+        "minimum": 1.3071770008536987,
+        "median": 1.583309996931348,
+        "p95": 1.6362300011678599,
+        "maximum": 1.6362300011678599
+      },
+      "current_evaluate_ms": {
+        "samples": 5,
+        "minimum": 1.3448200006678235,
+        "median": 1.473796997743193,
+        "p95": 1.5245149988913909,
+        "maximum": 1.5245149988913909
+      },
+      "baseline_model_read_ms": {
+        "samples": 5,
+        "minimum": 14.104009998845868,
+        "median": 14.817381001194008,
+        "p95": 15.173581999988528,
+        "maximum": 15.173581999988528
+      },
+      "current_model_read_ms": {
+        "samples": 5,
+        "minimum": 14.058723998459755,
+        "median": 14.649484997789841,
+        "p95": 18.352958002651576,
+        "maximum": 18.352958002651576
+      }
+    },
+    {
+      "id": "l_shape",
+      "member_count": 459,
+      "review_and_full_response_equal": true,
+      "database_bytes_preserved": true,
+      "baseline_evaluate_ms": {
+        "samples": 5,
+        "minimum": 2.2190290001162793,
+        "median": 2.421275003143819,
+        "p95": 2.7511189982760698,
+        "maximum": 2.7511189982760698
+      },
+      "current_evaluate_ms": {
+        "samples": 5,
+        "minimum": 2.1575589998974465,
+        "median": 2.412695001112297,
+        "p95": 2.9760600009467453,
+        "maximum": 2.9760600009467453
+      },
+      "baseline_model_read_ms": {
+        "samples": 5,
+        "minimum": 23.071520001394674,
+        "median": 23.53756299999077,
+        "p95": 25.726592997671105,
+        "maximum": 25.726592997671105
+      },
+      "current_model_read_ms": {
+        "samples": 5,
+        "minimum": 22.35442500023055,
+        "median": 24.095229000522522,
+        "p95": 25.834429001406534,
+        "maximum": 25.834429001406534
+      }
+    },
+    {
+      "id": "two_level",
+      "member_count": 387,
+      "review_and_full_response_equal": true,
+      "database_bytes_preserved": true,
+      "baseline_evaluate_ms": {
+        "samples": 5,
+        "minimum": 1.3176709981053136,
+        "median": 1.371876998746302,
+        "p95": 1.533547998405993,
+        "maximum": 1.533547998405993
+      },
+      "current_evaluate_ms": {
+        "samples": 5,
+        "minimum": 1.2767970001732465,
+        "median": 1.301025000429945,
+        "p95": 1.3777200001641177,
+        "maximum": 1.3777200001641177
+      },
+      "baseline_model_read_ms": {
+        "samples": 5,
+        "minimum": 19.78023500123527,
+        "median": 20.49810999960755,
+        "p95": 21.888691000640392,
+        "maximum": 21.888691000640392
+      },
+      "current_model_read_ms": {
+        "samples": 5,
+        "minimum": 19.482260999211576,
+        "median": 19.9615339988668,
+        "p95": 25.46009999787202,
+        "maximum": 25.46009999787202
+      }
+    },
+    {
+      "id": "sample_3_storeys",
+      "member_count": 3687,
+      "review_and_full_response_equal": true,
+      "database_bytes_preserved": true,
+      "baseline_evaluate_ms": {
+        "samples": 5,
+        "minimum": 228.72573700078647,
+        "median": 229.92112299834844,
+        "p95": 236.16576499989606,
+        "maximum": 236.16576499989606
+      },
+      "current_evaluate_ms": {
+        "samples": 5,
+        "minimum": 9.388524998939829,
+        "median": 9.786720998818055,
+        "p95": 9.966322999389376,
+        "maximum": 9.966322999389376
+      },
+      "baseline_model_read_ms": {
+        "samples": 5,
+        "minimum": 432.08046600193484,
+        "median": 461.9384910001827,
+        "p95": 482.27038900222396,
+        "maximum": 482.27038900222396
+      },
+      "current_model_read_ms": {
+        "samples": 5,
+        "minimum": 187.42752600155654,
+        "median": 193.5033290028514,
+        "p95": 220.506261997798,
+        "maximum": 220.506261997798
+      }
+    },
+    {
+      "id": "rectangle_260_trusses",
+      "member_count": 3651,
+      "review_and_full_response_equal": true,
+      "database_bytes_preserved": true,
+      "baseline_evaluate_ms": {
+        "samples": 5,
+        "minimum": 17.8134929992666,
+        "median": 19.385161001991946,
+        "p95": 22.740959997463506,
+        "maximum": 22.740959997463506
+      },
+      "current_evaluate_ms": {
+        "samples": 5,
+        "minimum": 17.638846999034286,
+        "median": 18.439547999150818,
+        "p95": 22.68067300246912,
+        "maximum": 22.68067300246912
+      },
+      "baseline_model_read_ms": {
+        "samples": 5,
+        "minimum": 172.6174230025208,
+        "median": 177.53419899963774,
+        "p95": 195.95008500255062,
+        "maximum": 195.95008500255062
+      },
+      "current_model_read_ms": {
+        "samples": 5,
+        "minimum": 177.4133590006386,
+        "median": 188.68630399811082,
+        "p95": 200.5037179987994,
+        "maximum": 200.5037179987994
+      }
+    }
+  ],
+  "protocol": "Same temporary model, alternating baseline/current evaluation and full model reads; five repeats; exact response equality required; no database writes during reads.",
+  "sample_read_cprofile": {
+    "baseline": {
+      "total_calls": 5139964,
+      "primitive_calls": 5139930,
+      "total_seconds": 0.8538076469999996,
+      "top_cumulative": "         5139964 function calls (5139930 primitive calls) in 0.854 seconds\n\n   Ordered by: cumulative time\n   List reduced from 141 to 15 due to restriction <15>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.030    0.030    0.854    0.854 db.py:313(model_json)\n        1    0.012    0.012    0.655    0.655 lite-bim-review-before-read-optimization.py:96(evaluate)\n     1468    0.282    0.000    0.624    0.000 {built-in method builtins.max}\n  4959654    0.339    0.000    0.339    0.000 lite-bim-review-before-read-optimization.py:148(<genexpr>)\n       24    0.093    0.004    0.093    0.004 {method 'execute' of 'sqlite3.Connection' objects}\n        1    0.001    0.001    0.093    0.093 db.py:406(cost_summary)\n     3687    0.055    0.000    0.068    0.000 db.py:300(_decode_element)\n     3694    0.002    0.000    0.013    0.000 __init__.py:299(loads)\n     3694    0.003    0.000    0.010    0.000 decoder.py:332(decode)\n    60083    0.008    0.000    0.008    0.000 {method 'get' of 'dict' objects}\n        1    0.004    0.004    0.005    0.005 db.py:368(_frame_segments)\n     1080    0.001    0.000    0.004    0.000 {built-in method builtins.min}\n     7388    0.004    0.000    0.004    0.000 {method 'match' of 're.Pattern' objects}\n     3682    0.003    0.000    0.003    0.000 lite-bim-review-before-read-optimization.py:110(<genexpr>)\n     3682    0.002    0.000    0.003    0.000 lite-bim-review-before-read-optimization.py:111(<genexpr>)\n\n\n"
+    },
+    "current": {
+      "total_calls": 182646,
+      "primitive_calls": 182612,
+      "total_seconds": 0.21631259599999988,
+      "top_cumulative": "         182646 function calls (182612 primitive calls) in 0.216 seconds\n\n   Ordered by: cumulative time\n   List reduced from 141 to 15 due to restriction <15>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.027    0.027    0.216    0.216 db.py:313(model_json)\n       24    0.091    0.004    0.091    0.004 {method 'execute' of 'sqlite3.Connection' objects}\n        1    0.000    0.000    0.091    0.091 db.py:406(cost_summary)\n     3687    0.052    0.000    0.063    0.000 db.py:300(_decode_element)\n        1    0.008    0.008    0.026    0.026 review.py:96(evaluate)\n     3694    0.002    0.000    0.011    0.000 __init__.py:299(loads)\n     3694    0.003    0.000    0.008    0.000 decoder.py:332(decode)\n    60083    0.007    0.000    0.007    0.000 {method 'get' of 'dict' objects}\n        1    0.004    0.004    0.005    0.005 db.py:368(_frame_segments)\n      122    0.001    0.000    0.005    0.000 {built-in method builtins.max}\n     1080    0.000    0.000    0.004    0.000 {built-in method builtins.min}\n     3682    0.002    0.000    0.003    0.000 review.py:111(<genexpr>)\n     3682    0.002    0.000    0.003    0.000 review.py:112(<genexpr>)\n     3694    0.002    0.000    0.002    0.000 decoder.py:343(raw_decode)\n     7388    0.002    0.000    0.002    0.000 {method 'match' of 're.Pattern' objects}\n\n\n"
+    }
+  },
+  "current_source_fingerprint": "cab60db1b954906480066db51f56f9ed4352b11dfb7d8a48e880ecbfb3a2d3ed",
+  "comparison_schema_version": 1,
+  "candidate_for_release": "2.16.0",
+  "candidate_review_sha256": "c9af62f4fbbc40b257a45118a6e66e84d62d5cb8dc55b3d10aa2aea995501297",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "cpu_affinity_count": 8
+  },
+  "limitations": "Five alternating repetitions on this host; exact response equality within each temporary fixture. Historical baseline evaluator copied before its change; no physical-device/public-network budget or uniform speedup claim. Source fingerprint describes the comparison capture, not later documentation/tooling edits."
+}

@@ -1,0 +1,393 @@
+{
+  "assessment_schema_version": 1,
+  "recorded_at": "2026-10-09T11:58:38.933Z",
+  "application_version": "2.16.0",
+  "chromium": "151.0.7922.34",
+  "reduced_motion": "reduce",
+  "cases": [
+    {
+      "label": "Building Specs desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "named_controls": 41,
+      "table_names": [],
+      "aria_references_intact": true,
+      "enabled_tab_targets": 42,
+      "reached_tab_targets": 42,
+      "tab_wrapped": true
+    },
+    {
+      "label": "BOM desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "named_controls": 321,
+      "table_names": [
+        "Bill of materials"
+      ],
+      "aria_references_intact": true,
+      "enabled_tab_targets": 322,
+      "reached_tab_targets": 322,
+      "tab_wrapped": true
+    },
+    {
+      "label": "Pricing desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "named_controls": 36,
+      "table_names": [
+        "Price catalogue and project overrides"
+      ],
+      "aria_references_intact": true,
+      "enabled_tab_targets": 37,
+      "reached_tab_targets": 37,
+      "tab_wrapped": true
+    },
+    {
+      "label": "Imports / Drawing Plans desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "named_controls": 40,
+      "table_names": [
+        "CSV plan review"
+      ],
+      "aria_references_intact": true,
+      "enabled_tab_targets": 38,
+      "reached_tab_targets": 38,
+      "tab_wrapped": true
+    },
+    {
+      "label": "Manual Wall Frame Input desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "named_controls": 51,
+      "table_names": [],
+      "aria_references_intact": true,
+      "enabled_tab_targets": 51,
+      "reached_tab_targets": 51,
+      "tab_wrapped": true
+    },
+    {
+      "label": "Manual Truss Input desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "named_controls": 39,
+      "table_names": [],
+      "aria_references_intact": true,
+      "enabled_tab_targets": 39,
+      "reached_tab_targets": 39,
+      "tab_wrapped": true
+    },
+    {
+      "label": "Settings / Warnings desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "named_controls": 37,
+      "table_names": [],
+      "aria_references_intact": true,
+      "enabled_tab_targets": 38,
+      "reached_tab_targets": 38,
+      "tab_wrapped": true
+    },
+    {
+      "label": "BOM dialog",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "named_controls": 307,
+      "table_names": [
+        "Bill of materials"
+      ],
+      "aria_references_intact": true,
+      "browser_chrome_boundaries": 1,
+      "modal_tab_checks": 309
+    },
+    {
+      "label": "Pricing dialog",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "named_controls": 22,
+      "table_names": [
+        "Price catalogue and project overrides"
+      ],
+      "aria_references_intact": true,
+      "browser_chrome_boundaries": 1,
+      "modal_tab_checks": 24
+    },
+    {
+      "label": "Building Specs mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "named_controls": 42,
+      "table_names": [],
+      "aria_references_intact": true,
+      "enabled_tab_targets": 43,
+      "reached_tab_targets": 43,
+      "tab_wrapped": true,
+      "canvas_bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 380
+      },
+      "sheet_bounds": {
+        "x": 64,
+        "y": 379.8125,
+        "width": 326,
+        "height": 464.1875
+      }
+    },
+    {
+      "label": "BOM mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "named_controls": 322,
+      "table_names": [
+        "Bill of materials"
+      ],
+      "aria_references_intact": true,
+      "enabled_tab_targets": 323,
+      "reached_tab_targets": 323,
+      "tab_wrapped": true,
+      "canvas_bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 380
+      },
+      "sheet_bounds": {
+        "x": 64,
+        "y": 379.8125,
+        "width": 326,
+        "height": 464.1875
+      }
+    },
+    {
+      "label": "Pricing mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "named_controls": 37,
+      "table_names": [
+        "Price catalogue and project overrides"
+      ],
+      "aria_references_intact": true,
+      "enabled_tab_targets": 38,
+      "reached_tab_targets": 38,
+      "tab_wrapped": true,
+      "canvas_bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 380
+      },
+      "sheet_bounds": {
+        "x": 64,
+        "y": 379.8125,
+        "width": 326,
+        "height": 464.1875
+      }
+    },
+    {
+      "label": "Imports / Drawing Plans mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "named_controls": 41,
+      "table_names": [
+        "CSV plan review"
+      ],
+      "aria_references_intact": true,
+      "enabled_tab_targets": 39,
+      "reached_tab_targets": 39,
+      "tab_wrapped": true,
+      "canvas_bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 380
+      },
+      "sheet_bounds": {
+        "x": 64,
+        "y": 379.8125,
+        "width": 326,
+        "height": 464.1875
+      }
+    },
+    {
+      "label": "Manual Wall Frame Input mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "named_controls": 52,
+      "table_names": [],
+      "aria_references_intact": true,
+      "enabled_tab_targets": 52,
+      "reached_tab_targets": 52,
+      "tab_wrapped": true,
+      "canvas_bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 380
+      },
+      "sheet_bounds": {
+        "x": 64,
+        "y": 379.8125,
+        "width": 326,
+        "height": 464.1875
+      }
+    },
+    {
+      "label": "Manual Truss Input mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "named_controls": 40,
+      "table_names": [],
+      "aria_references_intact": true,
+      "enabled_tab_targets": 40,
+      "reached_tab_targets": 40,
+      "tab_wrapped": true,
+      "canvas_bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 380
+      },
+      "sheet_bounds": {
+        "x": 64,
+        "y": 379.8125,
+        "width": 326,
+        "height": 464.1875
+      }
+    },
+    {
+      "label": "Settings / Warnings mobile",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "named_controls": 38,
+      "table_names": [],
+      "aria_references_intact": true,
+      "enabled_tab_targets": 39,
+      "reached_tab_targets": 39,
+      "tab_wrapped": true,
+      "canvas_bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 380
+      },
+      "sheet_bounds": {
+        "x": 64,
+        "y": 379.8125,
+        "width": 326,
+        "height": 464.1875
+      }
+    }
+  ],
+  "result": "passed",
+  "frontend_bundles": [
+    "/assets/index-DK3Ku7YM.js"
+  ],
+  "keyboard_csv_preview_and_cancel": true,
+  "text_contrast": [
+    {
+      "name": "Secondary notice",
+      "text_rgb": [
+        158,
+        171,
+        186
+      ],
+      "background_rgb": [
+        34,
+        42,
+        52
+      ],
+      "ratio": 6.203815930921991
+    },
+    {
+      "name": "Inline error",
+      "text_rgb": [
+        253,
+        164,
+        175
+      ],
+      "background_rgb": [
+        34,
+        42,
+        52
+      ],
+      "ratio": 7.665536338601161
+    },
+    {
+      "name": "Error message",
+      "text_rgb": [
+        254,
+        202,
+        202
+      ],
+      "background_rgb": [
+        25,
+        32,
+        41
+      ],
+      "ratio": 11.340392874674015
+    },
+    {
+      "name": "Warning message",
+      "text_rgb": [
+        253,
+        230,
+        138
+      ],
+      "background_rgb": [
+        25,
+        32,
+        41
+      ],
+      "ratio": 13.174061060647976
+    },
+    {
+      "name": "Success message",
+      "text_rgb": [
+        187,
+        247,
+        208
+      ],
+      "background_rgb": [
+        25,
+        32,
+        41
+      ],
+      "ratio": 13.5380005442644
+    }
+  ],
+  "reduced_motion_transition_duration": "0s"
+}

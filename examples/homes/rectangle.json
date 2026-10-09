@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "units": "mm",
+  "rule_profile": "NZS3604:2011-conceptual",
+  "name": "Rectangle home \u2014 9 m \u00d7 6 m",
+  "levels": [
+    {
+      "id": "ground",
+      "number": 1,
+      "elevation_mm": 0,
+      "wall_height_mm": 2800
+    }
+  ],
+  "walls": [
+    {
+      "id": "rectangle-1",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "rectangle-1",
+        "start_x_mm": 0,
+        "start_z_mm": 0,
+        "end_x_mm": 9000,
+        "end_z_mm": 0,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": true,
+        "openings": [
+          {
+            "opening_id": "entry",
+            "opening_type": "door",
+            "start_offset_mm": 1500,
+            "width_mm": 900,
+            "height_mm": 2100,
+            "sill_height_mm": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "rectangle-2",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "rectangle-2",
+        "start_x_mm": 9000,
+        "start_z_mm": 0,
+        "end_x_mm": 9000,
+        "end_z_mm": 6000,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "rectangle-3",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "rectangle-3",
+        "start_x_mm": 9000,
+        "start_z_mm": 6000,
+        "end_x_mm": 0,
+        "end_z_mm": 6000,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "rectangle-4",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "rectangle-4",
+        "start_x_mm": 0,
+        "start_z_mm": 6000,
+        "end_x_mm": 0,
+        "end_z_mm": 0,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": true
+      }
+    }
+  ],
+  "roofs": [
+    {
+      "id": "main-roof",
+      "level_id": "ground",
+      "minimum_mm": [
+        0,
+        0
+      ],
+      "maximum_mm": [
+        9000,
+        6000
+      ],
+      "ridge_axis": "x",
+      "shape": "gable",
+      "system": "truss",
+      "spacing_mm": 900,
+      "bearing_wall_ids": [
+        "rectangle-1",
+        "rectangle-3"
+      ]
+    }
+  ],
+  "floors": [
+    {
+      "id": "ceiling",
+      "level_id": "ground",
+      "purpose": "ceiling",
+      "boundary_mm": [
+        [
+          0,
+          0
+        ],
+        [
+          9000,
+          0
+        ],
+        [
+          9000,
+          6000
+        ],
+        [
+          0,
+          6000
+        ]
+      ],
+      "spacing_mm": 600,
+      "first_offset_mm": 300
+    }
+  ]
+}

@@ -46,7 +46,7 @@ class Material:
     fx_source: str = FX_SOURCE
     fx_date: str = FX_DATE
     pricing_notes: str = ""
-    # per-size USD/lm map; sizes not listed fall back to default_usd_per_lm
+    # Per-size USD/lm estimates; unsupported sections remain unpriced.
     size_prices_usd_per_lm: dict[str, float] = field(default_factory=dict)
 
 
@@ -282,8 +282,13 @@ def display_name(key: str) -> str:
     return m.display_name if m else "SG8"
 
 
+def section_plies(size: str) -> int:
+    match = _SIZE_PREFIX.match(size)
+    return int(match.group(1)) if match else 1
+
+
 def unit_price_usd_per_lm(material_key: str,
-                          size: str) -> tuple[float, str, str, str, str]:
+                          size: str, treatment: str | None = None) -> tuple[float | None, str, str, str, str]:
     """(usd_per_lm, confidence, source_name, source_url, pricing_notes).
 
     Handles lintel-style 'N/90x45' multipliers and a trailing ' (SED)'.
@@ -294,9 +299,23 @@ def unit_price_usd_per_lm(material_key: str,
     if (pm := _SIZE_PREFIX.match(base)):
         mult = int(pm.group(1))
         base = pm.group(2)
-    per_lm = m.size_prices_usd_per_lm.get(base, m.default_usd_per_lm)
-    return (round(mult * per_lm, 2), m.price_confidence,
-            m.price_source_name, m.price_source_url, m.pricing_notes)
+    per_lm = m.size_prices_usd_per_lm.get(base)
+    if per_lm is None and base == m.default_size_mm:
+        per_lm = m.default_usd_per_lm
+    if per_lm is None:
+        return (None, "unpriced", m.price_source_name, m.price_source_url,
+                f"No price for {base}; provide a project override or supplier quote")
+    exact_section = re.search(r"\b" + re.escape(base) + r"\b", m.source_unit)
+    confidence = m.price_confidence if exact_section else "low"
+    notes = m.pricing_notes
+    if not exact_section:
+        notes += f" Applied {base} is a derived section estimate."
+    source_treatment = re.search(r"\bH\d(?:\.\d)?\b", m.source_unit)
+    if treatment and (not source_treatment or source_treatment.group() != treatment):
+        confidence = "low"
+        notes += f" Applied treatment {treatment} is outside the recorded price's treatment scope; supplier price required."
+    return (round(mult * per_lm, 2), confidence,
+            m.price_source_name, m.price_source_url, notes)
 
 
 def catalogue_json() -> dict:

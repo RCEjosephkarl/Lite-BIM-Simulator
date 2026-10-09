@@ -23,9 +23,10 @@ PLATE_THICK = 45               # 90x45 plate laid flat
 WALL_THICK = 90                # framing depth
 STOREY_RISE = 2400 + 3 * 45 + 190 + 20  # studs + 3 plates + joist + flooring
 
-# NZS 3604 scope: buildings within 10 m height envelope (~2.5 storeys).
+# Source profile assumptions need independent review; actual model height is
+# evaluated separately in review.py rather than inferred from storey count.
 MAX_STOREYS_IN_SCOPE = 2
-SED_NOTE = "outside NZS 3604 scope (>10 m / 3 storeys) — SED required"
+SED_NOTE = "three-storey arrangement exceeds the simplified profile's storey assumption — SED review required (height evaluated separately)"
 
 # ---------------------------------------------------------------------------
 # Site exposure — Section 5

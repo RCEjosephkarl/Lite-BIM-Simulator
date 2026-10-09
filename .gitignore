@@ -18,6 +18,8 @@ env/
 # Backend runtime data
 backend/model.db
 backend/model.db-*
+backend/model.db.backup-*
+backend/model.db.projects/
 *.sqlite-journal
 *.sqlite-shm
 *.sqlite-wal

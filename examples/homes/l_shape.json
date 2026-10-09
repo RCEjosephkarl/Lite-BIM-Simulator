@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "units": "mm",
+  "rule_profile": "NZS3604:2011-conceptual",
+  "name": "L-shaped home \u2014 two explicit roof zones",
+  "levels": [
+    {
+      "id": "ground",
+      "number": 1,
+      "elevation_mm": 0,
+      "wall_height_mm": 2800
+    }
+  ],
+  "walls": [
+    {
+      "id": "L-1",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "L-1",
+        "start_x_mm": 0,
+        "start_z_mm": 0,
+        "end_x_mm": 12000,
+        "end_z_mm": 0,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "L-2",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "L-2",
+        "start_x_mm": 12000,
+        "start_z_mm": 0,
+        "end_x_mm": 12000,
+        "end_z_mm": 4000,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "L-3",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "L-3",
+        "start_x_mm": 12000,
+        "start_z_mm": 4000,
+        "end_x_mm": 6000,
+        "end_z_mm": 4000,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "L-4",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "L-4",
+        "start_x_mm": 6000,
+        "start_z_mm": 4000,
+        "end_x_mm": 6000,
+        "end_z_mm": 9000,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "L-5",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "L-5",
+        "start_x_mm": 6000,
+        "start_z_mm": 9000,
+        "end_x_mm": 0,
+        "end_z_mm": 9000,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "L-6",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "L-6",
+        "start_x_mm": 0,
+        "start_z_mm": 9000,
+        "end_x_mm": 0,
+        "end_z_mm": 0,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": true
+      }
+    },
+    {
+      "id": "wing-bearing",
+      "level_id": "ground",
+      "spec": {
+        "segment_label": "wing-bearing",
+        "start_x_mm": 6000,
+        "start_z_mm": 0,
+        "end_x_mm": 6000,
+        "end_z_mm": 9000,
+        "wall_height_mm": 2800,
+        "panelize": true,
+        "exterior": false
+      }
+    }
+  ],
+  "roofs": [
+    {
+      "id": "long-wing",
+      "level_id": "ground",
+      "minimum_mm": [
+        0,
+        0
+      ],
+      "maximum_mm": [
+        6000,
+        9000
+      ],
+      "ridge_axis": "y",
+      "shape": "gable",
+      "system": "truss",
+      "spacing_mm": 900,
+      "bearing_wall_ids": [
+        "L-6",
+        "wing-bearing"
+      ]
+    },
+    {
+      "id": "short-wing",
+      "level_id": "ground",
+      "minimum_mm": [
+        6000,
+        0
+      ],
+      "maximum_mm": [
+        12000,
+        4000
+      ],
+      "ridge_axis": "x",
+      "shape": "gable",
+      "system": "truss",
+      "spacing_mm": 900,
+      "bearing_wall_ids": [
+        "L-1",
+        "L-3"
+      ]
+    }
+  ],
+  "floors": [
+    {
+      "id": "L-ceiling",
+      "level_id": "ground",
+      "purpose": "ceiling",
+      "boundary_mm": [
+        [
+          0,
+          0
+        ],
+        [
+          12000,
+          0
+        ],
+        [
+          12000,
+          4000
+        ],
+        [
+          6000,
+          4000
+        ],
+        [
+          6000,
+          9000
+        ],
+        [
+          0,
+          9000
+        ]
+      ],
+      "spacing_mm": 600,
+      "first_offset_mm": 300
+    }
+  ]
+}

@@ -19,6 +19,8 @@ from dataclasses import dataclass, field
 import geometry as g
 import materials
 import nzs3604 as nz
+from manual_inputs import MAX_MEMBERS, ManualOpening, ManualWallFrameInput, generate_wall
+from geometry_checks import advance, bounded_count, finite
 
 CUSTOM_SPACING_NOTE = "custom spacing — verify by design/NZS 3604"
 
@@ -223,6 +225,9 @@ def _el(els: list, type_code: str, storey: int, size: str, length: float,
         w: float, h: float, cx: float, cy: float, cz: float,
         yaw: float = 0.0, pitch: float = 0.0, grade: str = nz.GRADE,
         treatment: str = nz.WALL_TREATMENT, note: str = "") -> None:
+    finite("generated member geometry", length, w, h, cx, cy, cz, yaw, pitch)
+    if min(w, h) <= 0:
+        raise ValueError("generated member section dimensions must be positive")
     if length <= 1:
         return
     els.append(dict(type_code=type_code, storey=storey, size=size, grade=grade,
@@ -242,126 +247,25 @@ def frame_wall(els: list, wall: g.Wall, storey: int, spacing: int,
                plies: int = 1, segment_id: str = "",
                segment_label: str = "",
                treatment: str = nz.WALL_TREATMENT) -> None:
-    dx, dy = wall.x2 - wall.x1, wall.y2 - wall.y1
-    length = math.hypot(dx, dy)
-    if length < 100:
-        return
-    start = len(els)
-    vert_breadth = 45.0 * plies  # multi-ply studs widen along the wall
-    yaw = math.atan2(dy, dx)
-    ux, uy = dx / length, dy / length
-
-    def at(s: float) -> tuple[float, float]:
-        return wall.x1 + ux * s, wall.y1 + uy * s
-
-    def horiz(code: str, size: str, s1: float, s2: float, z1: float, z2: float,
-              w: float = 90.0, **kw) -> None:
-        """Member along the wall from s1..s2, vertically z1..z2 (above floor)."""
-        for a, b in _split(s1, s2):
-            x, y = at((a + b) / 2)
-            _el(els, code, storey, size, b - a, w, z2 - z1,
-                x, y, z + (z1 + z2) / 2, yaw, 0, note=kw.get("note", note),
-                treatment=kw.get("treatment", nz.WALL_TREATMENT))
-
-    def vert(code: str, s: float, z1: float, z2: float) -> None:
-        """Stud-type member at station s from z1..z2 above floor."""
-        x, y = at(s)
-        _el(els, code, storey, "90x45", z2 - z1, 90, vert_breadth,
-            x, y, z + (z1 + z2) / 2, yaw, math.pi / 2, note=note)
-
-    half = 22.5  # half stud breadth
-
-    # --- plates ---
-    door_spans = [(o.offset, o.offset + o.width) for o in wall.openings
-                  if o.sill <= 0]
-    for a, b in _complement(0, length, door_spans):
-        horiz("plate_bottom", "90x45", a, b, 0, nz.PLATE_THICK)
-    horiz("plate_top", "90x45", 0, length, STUD_TOP, STUD_TOP + 45)
-    horiz("plate_top", "90x45", 0, length, STUD_TOP + 45, WALL_H)
-
-    # --- common studs (skip across openings + trimmer zones) ---
-    stations = [half]
-    s = spacing
-    while s < length - spacing / 2:
-        stations.append(s)
-        s += spacing
-    stations.append(length - half)
-    keep_out = [(o.offset - 135, o.offset + o.width + 135) for o in wall.openings]
-    studs = [st for st in stations
-             if not any(a <= st <= b for a, b in keep_out)]
-    for st in studs:
-        vert("stud", st, nz.PLATE_THICK, STUD_TOP)
-
-    all_verticals = list(studs)
-
-    # --- openings: trimmers, lintels, sills ---
-    for o in wall.openings:
-        s1, s2 = o.offset, o.offset + o.width
-        label, depth, _breadth = nz.lintel_for_span(o.width)
-        lintel_z1 = min(o.head, STUD_TOP - 45)
-        lintel_z2 = min(lintel_z1 + depth, STUD_TOP)
-
-        for side in (-1, 1):
-            edge = s1 if side < 0 else s2
-            for k in (1, 2):
-                st = edge + side * (half + (k - 1) * 45)
-                st = min(max(st, half), length - half)
-                vert("trimmer_stud", st, nz.PLATE_THICK, STUD_TOP)
-                all_verticals.append(st)
-
-        horiz("lintel", label, s1 - 90, s2 + 90, lintel_z1, lintel_z2,
-              note=(note or nz.scope_note(0)) if "SED" not in label
-              else f"span {o.width / 1000:.1f} m exceeds Table 8.9 — SED")
-
-        # cripples between lintel and top plate
-        gap_top = STUD_TOP - lintel_z2
-        if gap_top >= 150:
-            c = s1 + 300
-            while c < s2 - 100:
-                x, y = at(c)
-                _el(els, "jack_stud", storey, "90x45", gap_top, 90,
-                    vert_breadth, x, y, z + lintel_z2 + gap_top / 2,
-                    yaw, math.pi / 2, note=note)
-                c += 600
-
-        if o.sill > 0:  # window: sill trimmer + jack studs under it
-            horiz("sill_trimmer", "90x45", s1, s2, o.sill - 45, o.sill)
-            c = s1 + 300
-            while c < s2 - 100:
-                x, y = at(c)
-                _el(els, "jack_stud", storey, "90x45", o.sill - 45 - nz.PLATE_THICK,
-                    90, vert_breadth, x, y,
-                    z + nz.PLATE_THICK + (o.sill - 45 - nz.PLATE_THICK) / 2,
-                    yaw, math.pi / 2, note=note)
-                c += 600
-
-    # --- nogs at mid-height between verticals ---
-    nog_z = nz.PLATE_THICK + nz.STUD_HEIGHT / 2
-    pts = sorted(all_verticals)
-    for a, b in zip(pts, pts[1:]):
-        gap = b - a - 45
-        if gap < 120:
-            continue
-        mid = (a + b) / 2
-        blocked = any(o.offset - 45 < mid < o.offset + o.width + 45
-                      and o.sill < nog_z + 25 and o.head > nog_z - 25
-                      for o in wall.openings)
-        if blocked:
-            continue
-        x, y = at(mid)
-        _el(els, "nog", storey, "90x45", gap, 90, 45, x, y, z + nog_z, yaw,
-            0, note=note)
-
-    # --- stamp wall-frame design metadata on everything just emitted ---
-    for e in els[start:]:
-        e["plies"] = plies
-        e["segment_id"] = segment_id
-        e["segment_label"] = segment_label
-        e["stud_spacing_mm"] = spacing
-        e["treatment"] = treatment
-        if e["type_code"] in STUD_LIKE:
-            e["material"] = material
-            e["grade"] = material
+    spec = ManualWallFrameInput(
+        level=storey, segment_id=segment_id, segment_label=segment_label,
+        start_x_mm=wall.x1, start_z_mm=wall.y1, end_x_mm=wall.x2, end_z_mm=wall.y2,
+        wall_height_mm=WALL_H, stud_spacing_mm=spacing, stud_material=material,
+        plies=plies, treatment=treatment, exterior=wall.exterior,
+        panelize=True,
+        openings=[ManualOpening(opening_id=f"{segment_id}:O{i+1:03d}",
+                    opening_type=o.kind if o.kind in {"door","window","garage"} else "custom",
+                    start_offset_mm=o.offset, width_mm=o.width, height_mm=o.head-o.sill,
+                    sill_height_mm=o.sill, head_height_mm=o.head)
+                  for i,o in enumerate(wall.openings)],
+    )
+    generated, warnings = generate_wall(spec, "generated", segment_id)
+    offset = z-(storey-1)*nz.STOREY_RISE
+    for element in generated:
+        element["cz"] += offset
+        element["editable"] = False
+        element["note"] = "; ".join(filter(None,[note,element["note"]]))
+    els.extend(generated)
 
 
 def _split(a: float, b: float) -> list[tuple[float, float]]:
@@ -369,7 +273,7 @@ def _split(a: float, b: float) -> list[tuple[float, float]]:
     total = b - a
     if total <= MAX_PIECE:
         return [(a, b)] if total > 1 else []
-    n = math.ceil(total / MAX_PIECE)
+    n = bounded_count(total, MAX_PIECE, MAX_MEMBERS, "split run")
     step = total / n
     return [(a + i * step, a + (i + 1) * step) for i in range(n)]
 
@@ -460,23 +364,28 @@ def frame_ceiling(els: list, poly_mm: list[tuple[float, float]], storey: int,
 # ---------------------------------------------------------------------------
 
 class _Roof:
-    def __init__(self, els: list, rect_ft, storey: int, z: float, note: str):
+    def __init__(self, els: list, rect_ft, storey: int, z: float, note: str,
+                 *, units: str = "feet", pitch_deg: float = nz.ROOF_PITCH_DEG,
+                 overhang_mm: float = nz.EAVE_OVERHANG, heel_height_mm: float = 100,
+                 gable_end_inset_mm: float = g.ft(1)):
         x1, y1, x2, y2, axis = rect_ft
-        x1, y1, x2, y2 = g.ft(x1), g.ft(y1), g.ft(x2), g.ft(y2)
+        if units == "feet":
+            x1, y1, x2, y2 = g.ft(x1), g.ft(y1), g.ft(x2), g.ft(y2)
         self.els, self.storey, self.z, self.note = els, storey, z, note
         self.axis = axis
+        self.gable_end_inset_mm = gable_end_inset_mm
         if axis == "y":
             self.u1, self.v1, self.u2, self.v2 = y1, x1, y2, x2
             self.base_yaw, self.mirror = math.pi / 2, -1.0
         else:
             self.u1, self.v1, self.u2, self.v2 = x1, y1, x2, y2
             self.base_yaw, self.mirror = 0.0, 1.0
-        self.pitch = math.radians(nz.ROOF_PITCH_DEG)
+        self.pitch = math.radians(pitch_deg)
         self.tanp, self.cosp = math.tan(self.pitch), math.cos(self.pitch)
-        self.over = nz.EAVE_OVERHANG
+        self.over = overhang_mm
         self.half = (self.v2 - self.v1) / 2
         self.vc = (self.v1 + self.v2) / 2
-        self.apex = z + 100 + self.half * self.tanp
+        self.apex = z + heel_height_mm + self.half * self.tanp
         self.run = self.half + self.over            # eave to ridge, in plan
         self.eave_z = self.apex - self.run * self.tanp
 
@@ -522,15 +431,15 @@ class _Roof:
 
 def frame_gable_roof(els: list, rect_ft, storey: int, z: float,
                      rspacing: int, gable_spacing: int, note: str = "",
-                     *, material: str = "SG8") -> None:
-    r = _Roof(els, rect_ft, storey, z, note)
+                     *, material: str = "SG8", **roof_options) -> None:
+    r = _Roof(els, rect_ft, storey, z, note, **roof_options)
     r.ridge_board(r.u1, r.u2)
 
     u = r.u1 + 150
     while u <= r.u2 - 100:
         for side in (-1, 1):
             r.cross_rafter(u, r.run, side)
-        u += rspacing
+        u = advance(u, rspacing, "roof rafter placement")
 
     for side in (-1, 1):
         r.fascia_u(r.u1, r.u2, r.vc + side * r.run)
@@ -538,7 +447,7 @@ def frame_gable_roof(els: list, rect_ft, storey: int, z: float,
     # gable-end studs: verticals under the end rafters at custom centres,
     # standing on the end wall's top plate (roof rects overhang walls ~1 ft)
     start = len(els)
-    for u_face in (r.u1 + g.ft(1), r.u2 - g.ft(1)):
+    for u_face in (r.u1 + r.gable_end_inset_mm, r.u2 - r.gable_end_inset_mm):
         offsets = [0.0]
         k = gable_spacing
         while k < r.half - 100:
@@ -557,8 +466,8 @@ def frame_gable_roof(els: list, rect_ft, storey: int, z: float,
 
 
 def frame_hip_roof(els: list, rect_ft, storey: int, z: float,
-                   rspacing: int, note: str = "") -> None:
-    r = _Roof(els, rect_ft, storey, z, note)
+                   rspacing: int, note: str = "", **roof_options) -> None:
+    r = _Roof(els, rect_ft, storey, z, note, **roof_options)
     ur1, ur2 = r.u1 + r.half, r.u2 - r.half  # ridge shortened by hip ends
     if ur1 > ur2:
         ur1 = ur2 = (r.u1 + r.u2) / 2        # square plan => pyramid
@@ -570,7 +479,7 @@ def frame_hip_roof(els: list, rect_ft, storey: int, z: float,
     while u <= ur2:
         for side in (-1, 1):
             r.cross_rafter(u, r.run, side)
-        u += rspacing
+        u = advance(u, rspacing, "hip rafter placement")
 
     # side jack rafters in the hip-end triangles (shorten toward corners)
     for u_end, direction in ((ur1, -1), (ur2, 1)):
@@ -673,87 +582,9 @@ class GenerateResult:
 
 
 def generate(cfg: ModelConfig | None = None) -> GenerateResult:
+    from home_definition import generate as generate_home, sample_definition
     cfg = (cfg or ModelConfig()).normalised()
-    storeys = cfg.storeys
-    note = "; ".join(cfg.warnings())
-    rspacing = nz.rafter_spacing(cfg.snow_zone)
-    els: list[dict] = []
-    segments: list[dict] = []
-    slabs(els)
-
-    upper_poly = [(g.ft(x), g.ft(y)) for x, y in g.UPPER_POLY_FT]
-    full_poly = [(g.ft(x), g.ft(y)) for x, y in g.EXTERIOR_POLY_FT]
-    envelope_warns: list[str] = []
-
-    for s in range(1, storeys + 1):
-        z = (s - 1) * nz.STOREY_RISE
-        nzs_default = nz.stud_spacing(s, storeys, cfg.wind_zone)
-        if s == 1:
-            walls = g.ground_exterior_walls() + g.ground_interior_walls()
-        else:
-            walls = g.upper_exterior_walls() + g.upper_interior_walls()
-        counters = {True: 0, False: 0}
-        for w in walls:
-            counters[w.exterior] += 1
-            prefix = "G" if s == 1 else f"L{s}"
-            kind = "EXT" if w.exterior else "INT"
-            seg_id = f"{prefix}-{kind}-{counters[w.exterior]:03d}"
-            label = (f"L{s} {'Exterior' if w.exterior else 'Interior'} "
-                     f"Wall {counters[w.exterior]:02d}")
-            mat_key = cfg.effective_stud_material(s, seg_id)
-            spacing = cfg.effective_stud_spacing(s, seg_id, nzs_default)
-            plies = cfg.effective_wall_plies(s, seg_id)
-            wall_note = note
-            if spacing != nzs_default:
-                wall_note = (f"{note}; " if note else "") + CUSTOM_SPACING_NOTE
-            seg_len = round(math.hypot(w.x2 - w.x1, w.y2 - w.y1), 1)
-            if seg_len > 6000:
-                envelope_warns.append(
-                    f"{seg_id}: wall length {seg_len / 1000:.1f} m exceeds "
-                    "the 6 m x 3 m frame envelope — verify panel joins")
-            segments.append(dict(
-                segment_id=seg_id, storey=s, label=label,
-                length_mm=seg_len,
-                exterior=w.exterior, openings=len(w.openings),
-                material=materials.display_name(mat_key),
-                spacing_mm=spacing, plies=plies,
-                treatment=cfg.wall_treatment or nz.WALL_TREATMENT))
-            frame_wall(els, w, s, spacing, z, wall_note,
-                       material=materials.display_name(mat_key), plies=plies,
-                       segment_id=seg_id, segment_label=label,
-                       treatment=cfg.wall_treatment or nz.WALL_TREATMENT)
-        if s < storeys:  # platform for the storey above
-            frame_floor(els, upper_poly, s, z + WALL_H, note)
-
-    top_z = (storeys - 1) * nz.STOREY_RISE + WALL_H
-    top_poly = full_poly if storeys == 1 else upper_poly
-    frame_ceiling(els, top_poly, storeys, top_z, note)
-
-    roof_rects = [(rect, storeys, top_z) for rect in g.MAIN_ROOF_FT]
-    roof_rects.append((g.GARAGE_ROOF_FT, 1, WALL_H))
-    for rect, st, zz in roof_rects:
-        if cfg.roof == "hip":
-            frame_hip_roof(els, rect, st, zz, rspacing, note)
-        else:
-            gable_mat = materials.display_name(
-                cfg.effective_stud_material(st, None))
-            frame_gable_roof(els, rect, st, zz, rspacing,
-                             cfg.gable_spacing, note, material=gable_mat)
-    frame_porch(els, note)
-
-    warnings = (list(cfg.warnings()) + list(cfg.override_warnings)
-                + envelope_warns)
-    if cfg.has_spacing_override():
-        warnings.append(CUSTOM_SPACING_NOTE)
-    known = {sg["segment_id"] for sg in segments}
-    for param, d in (("stud_material_segments", cfg.stud_material_segments),
-                     ("stud_spacing_segments", cfg.stud_spacing_segments),
-                     ("wall_plies_segments", cfg.wall_plies_segments)):
-        for seg in d:
-            if seg not in known:
-                warnings.append(f"unknown frame segment '{_safe(seg)}' "
-                                f"in {param} — ignored")
-    return GenerateResult(els, segments, warnings)
+    return generate_home(sample_definition(cfg), cfg)
 
 
 if __name__ == "__main__":

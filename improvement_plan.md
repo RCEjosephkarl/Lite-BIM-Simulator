@@ -4,7 +4,11 @@ Assessment date: **2026-10-09, Asia/Manila**. Source baseline: Git commit **28c1
 
 This plan follows an inspection of the source, README, feature report, sample CSVs, database schema, API behavior, and desktop/mobile UI. It records confirmed defects separately from recommendations. It is an implementation and handover guide; the investigation did not certify structural design or the accuracy of the NZS tables.
 
-**Recommended starting point:** fix project persistence and the CSV validation/preview contract, then correct wall/truss geometry. Build support for other home designs on those foundations before adding major UI features.
+**Original priority:** protect project persistence and CSV validation/preview,
+then correct wall/truss geometry. These foundations now have implemented regression
+coverage. **Current resume point:** use section 9, starting with Imports/API resource-bound
+coverage, measured estimating-read work and fabrication/template documentation. It records remaining
+domain-review gates separately from verified implementation.
 
 ## 1. Requirements and decision boundaries
 
@@ -13,28 +17,30 @@ This plan follows an inspection of the source, README, feature report, sample CS
 3. **Roof trusses must include webs.** Model and validate chords, webs, their connections, bearing locations, and repeated instances. A successful preview must not imply that a disconnected or incomplete layout is a complete truss.
 4. **UI improvements are welcome.** Prioritize a visible model, clear project state, useful selection, reliable previews, accessible forms, and readable estimating tables.
 
-This assessment adds documentation only. No feature restriction, framework change, or application fix has been implemented as part of this plan.
+The original assessment added documentation only. Implementation is now underway;
+section 9 records completed work, remaining gates, and the next resume point.
+No feature restriction or framework replacement has been approved or performed.
 
 ## 2. Where the next expert should start or resume
 
-There is currently **one browser page at `/`**, with seven sidebar panels; there is no page router. “Page” below means a workspace panel or the 3D workspace. Open the sidebar by hovering/focusing its rail and pin it on a desktop. Deep links to individual panels are a proposed improvement, not an existing capability.
+At assessment there was **one browser page at `/`**, with seven sidebar panels; there is no page router. “Page” below means a workspace panel or the 3D workspace. Open the sidebar by hovering/focusing its rail and pin it on a desktop. Panel deep links are now available; the table maps starting pages and source files. Section 9 gives the verified implementation state.
 
 | Page / panel | Start here when… | First source files and functions | Resume checkpoint |
 |---|---|---|---|
-| **Settings / Warnings** | Investigating lost data, reset, regeneration, or another browser changing the model | [sidebar.ts](frontend/src/sidebar.ts), [server.py](backend/server.py) project endpoints, [db.py](backend/db.py) `rebuild`, `model_json`, `ensure_model`; [schema.sql](backend/schema.sql) | Complete **S1–S2**: failed rebuilds preserve the previous revision; reads and regeneration respect project identity and geometry mode. |
-| **Imports / Drawing Plans** | Reusing the app for another house or reproducing the failing bundled example | [imports.ts](frontend/src/imports.ts), [csv_plan.py](backend/imports/csv_plan.py), [validators.py](backend/imports/validators.py), [schemas.py](backend/imports/schemas.py), CSV endpoints in [server.py](backend/server.py) | Complete **V1** and **W1**, then **D1**: the example validates/previews/commits; a saved imported house stays independent of the sample. |
-| **Manual Wall Frame Input** | Fixing openings, studs, nogs, lintels, panel limits, or differing generated/manual behavior | [manualInputs.ts](frontend/src/manualInputs.ts) `ManualWallPanel`, [manual_inputs.py](backend/manual_inputs.py) `ManualWallFrameInput`, `generate_wall`; [framing.py](backend/framing.py) `frame_wall` | Complete **W1**: openings remain clear, dimensions are validated, and both input paths use consistent framing rules. |
-| **Manual Truss Input** | Addressing the requested webs, topology, repeated layouts, or specialized truss types | [manualInputs.ts](frontend/src/manualInputs.ts) `ManualTrussPanel`, [manual_inputs.py](backend/manual_inputs.py) `ManualTrussInput`, `generate_truss`; [nzs3604.py](backend/nzs3604.py) `ELEMENT_TYPES` | Complete **T1**, then **T2**: each physical truss has a unique identity and connected chords/webs; roof integration has explicit supports and layout limits. |
-| **Building Specs** | Changing storeys, roof, exposure, material/spacing/ply scopes, or inspecting a selected frame | [ui.ts](frontend/src/ui.ts), [main.ts](frontend/src/main.ts), [types.ts](frontend/src/types.ts), [geometry.py](backend/geometry.py), [framing.py](backend/framing.py) `ModelConfig`, `generate` | Complete **S2/D1** before generalizing controls; complete **U1** so settings, filters, and selection match the active project revision. |
-| **3D workspace** | Fixing navigation, models outside the camera, layers, selection, roof visibility, or performance | [scene.ts](frontend/src/scene.ts) `Viewer`, [main.ts](frontend/src/main.ts) `render`, `showPreview`; [index.html](frontend/index.html) layout/styles | Complete **U1–U2**: mobile viewport stays visible, new designs fit the camera, view state survives updates, and selection resolves the correct assembly. |
-| **BOM** | Checking quantities, stock lengths, procurement meaning, exported totals, or estimate reconciliation | [bomPanel.ts](frontend/src/bomPanel.ts), [schema.sql](backend/schema.sql) `bom`, [db.py](backend/db.py) `bom_json`, `bom_csv`, `cost_summary` | Complete **E1**: stock is never shorter than its cut, assembly/board quantities are explicit, and every surface uses the same estimate revision. |
-| **Pricing** | Fixing ineffective overrides, confidence, unsupported sizes, treatment pricing, FX, or stale price snapshots | [pricingPanel.ts](frontend/src/pricingPanel.ts), [materials.py](backend/materials.py), [db.py](backend/db.py) `_price`; pricing API in [server.py](backend/server.py) | Complete **E1**: overrides actually affect totals and exports; unsupported prices are disclosed; project pricing survives save/reopen. |
+| **Settings / Warnings** | Investigating lost data, reset, regeneration, or another browser changing the model | [sidebar.ts](frontend/src/sidebar.ts), [server.py](backend/server.py) project endpoints, [db.py](backend/db.py) `rebuild`, `model_json`, `ensure_model`; [schema.sql](backend/schema.sql) | **S1** is verified. Preserve rollback/read-only isolation tests; continue **S2** compatibility/definition coverage and **R1** qualified review. Inspect revision-safe regeneration before changing persistence. |
+| **Imports / Drawing Plans** | Reusing the app for another house or reproducing the failing bundled example | [imports.ts](frontend/src/imports.ts), [csv_plan.py](backend/imports/csv_plan.py), [validators.py](backend/imports/validators.py), [schemas.py](backend/imports/schemas.py), CSV endpoints in [server.py](backend/server.py) | Examples and independent saved homes now pass end-to-end checks. Resume **V1** resource-bound/contract coverage, **W1** fabrication details and **D1/T2** roof/floor domain gates. |
+| **Manual Wall Frame Input** | Fixing openings, studs, nogs, lintels, panel limits, or differing generated/manual behavior | [manualInputs.ts](frontend/src/manualInputs.ts) `ManualWallPanel`, [formGuidance.ts](frontend/src/formGuidance.ts), [drafts.ts](frontend/src/drafts.ts), [manual_inputs.py](backend/manual_inputs.py) `ManualWallFrameInput`, [walls.py](backend/walls.py) | Guided fields/errors/raw drafts are implemented; complete **W1** fabrication details and qualified panel/connection review. Preserve U2 keyboard/recovery contracts. |
+| **Manual Truss Input** | Addressing the requested webs, topology, repeated layouts, or specialized truss types | [manualInputs.ts](frontend/src/manualInputs.ts) `ManualTrussPanel`, [formGuidance.ts](frontend/src/formGuidance.ts), [manual_inputs.py](backend/manual_inputs.py) `ManualTrussInput`, [trusses.py](backend/trusses.py), [review.py](backend/review.py) | Connected templates/unique instances and corrected automatic bearings exist; continue **T1/T2/R1** supplier, support and qualified-design gates. Preserve custom CSV field/error contracts. |
+| **Building Specs** | Changing storeys, roof, exposure, material/spacing/ply scopes, or inspecting a selected frame | [ui.ts](frontend/src/ui.ts), [main.ts](frontend/src/main.ts), [types.ts](frontend/src/types.ts), [geometry.py](backend/geometry.py), [framing.py](backend/framing.py) `ModelConfig`, `generate` | Saved home/configuration and **U1** view/filter/revision contracts are implemented. The seven-page local **U2** assessment passes; continue device/assistive review and **R1** source-assumption review; preserve current ranges and options. |
+| **3D workspace** | Fixing navigation, models outside the camera, layers, selection, roof visibility, or performance | [workspaceState.ts](frontend/src/workspaceState.ts), [workspaceTools.ts](frontend/src/workspaceTools.ts), [modelHierarchy.ts](frontend/src/modelHierarchy.ts), [memberGeometry.ts](frontend/src/memberGeometry.ts), [scene.ts](frontend/src/scene.ts) `Viewer`, [main.ts](frontend/src/main.ts) `render`, `showPreview`; [styles.css](frontend/src/styles.css) | Continue **U2/M1** from the view-state/orthographic/section/dimension milestone: hierarchy/BOM/keyboard navigation is verified, including 260-instance paging and mobile canvas space. Rendering now pauses when settled and preserves active rotation/damping; the seven-page local accessibility assessment now passes. Resume physical-device/enlarged-text/assistive review and API/resource profiling. |
+| **BOM** | Checking quantities, stock lengths, procurement meaning, exported totals, or estimate reconciliation | [bomPanel.ts](frontend/src/bomPanel.ts), [bom_queries.py](backend/bom_queries.py) shared physical/BOM SQL, [db.py](backend/db.py) `bom_json`, `bom_csv`, `cost_summary` | Physical quantities, upward stock rounding and exact saved-assembly/row navigation are implemented. Continue **E1** supplier/stock/splice/replay workflows; preserve JSON/CSV revision and pricing contracts. |
+| **Pricing** | Fixing ineffective overrides, confidence, unsupported sizes, treatment pricing, FX, or stale price snapshots | [pricingPanel.ts](frontend/src/pricingPanel.ts), [materials.py](backend/materials.py), [db.py](backend/db.py) `_price`; pricing API in [server.py](backend/server.py) | Override propagation, unknown-price coverage and save/reopen pass checks. Resume **E1** supplier/currency/stock workflows and cross-version price replay; retain existing dated provenance. |
 
 Suggested reading order: this plan → [README.md](README.md) for operating instructions → [REPORT.md](REPORT.md) for feature history → the files for the selected ticket. Treat historic verification in REPORT as background; use the current assessment below for the present baseline.
 
-## 3. Current architecture and useful foundations
+## 3. Original architecture and useful foundations
 
-| Area | Current implementation | Foundation worth retaining |
+| Area | Implementation at original assessment | Foundation worth retaining |
 |---|---|---|
 | UI | Strict TypeScript, direct DOM rendering, Vite, Three.js; most CSS is inline in `frontend/index.html` | Small dependency surface; typed frontend contracts; working production build. |
 | Rendering | Instanced boxes grouped by member type; OrbitControls; group selection by `segment_id` or `truss_id` | Efficient representation for the sample; source coloring and member metadata already exist. |
@@ -73,13 +79,16 @@ Backend dependencies were installed from `backend/requirements.txt` into an isol
 
 ### Confirmed defects and targeted reproductions
 
+This table records the original assessment evidence. Some findings are now fixed;
+use the implementation tracker in section 9 for current status and verification.
+
 “Reproduced” means an API, generator, SQL, or browser probe was actually run. “Source finding” means the issue follows from inspected code and still needs a dedicated regression test or visual check.
 
 | Finding | Evidence / reproduction | Status | Ticket |
 |---|---|---|---|
 | Rebuild failure destroys the previous model | Seed 1,163 elements; inject a generated element with `length_mm=0`; call `rebuild`. The insert raises `IntegrityError`, leaving **0 elements and 0 metadata rows**. `executescript(SCHEMA)` has already dropped/recreated the tables. | Reproduced with failure injection | S1 |
 | Clients share one mutable model | Client A loads `storeys=2`; client B loads defaults; A's cost endpoint changes from **$19,521.89 to $10,504.24** and the database configuration becomes one storey. | Reproduced with two ASGI clients | S2 |
-| CSV-only project later regains the sample | Commit a valid 3.6 m wall with `new_project_from_csv`: generated count is 0. Read `/api/model?roof=hip`: **1,156 generated members return**, alongside 16 imported members. | Reproduced | S2 / D1 |
+| CSV-only project later regains the sample | Commit a valid 3.6 m wall with `new_project_from_csv`: generated count is 0. Read `/api/model?roof=hip`: **1,157 generated members return**, alongside 16 imported members. | Reproduced | S2 / D1 |
 | Replacement retains stale sample metadata | After replacing with one imported wall, `meta.frame_segments` still contains the sample's **25 segments**. | Reproduced | S2 / D1 |
 | Bundled CSV passes validation but fails preview | Upload [walls_openings_trusses.csv](examples/walls_openings_trusses.csv): `can_preview=true`, zero validation errors; preview returns **500**. Its 9 m and 7 m walls exceed the manual wall envelope used during conversion. | Reproduced | V1 / W1 |
 | Other validation/preview disagreements | CSV wall `treatment=H9` passes CSV validation but preview returns **500**. An opening with valid `center_offset_mm` and blank `start_offset_mm` also returns **500**. | Reproduced | V1 |
@@ -103,6 +112,8 @@ Backend dependencies were installed from `backend/requirements.txt` into an isol
 Passing smoke tests therefore establishes a useful baseline, but does not cover the failure cases above.
 
 ## 5. Prioritized implementation backlog
+
+Problem statements below describe the original baseline; section 9 supersedes them for fixed issues.
 
 Priority meanings: **P0** protects project data and model identity; **P1** corrects essential modeling/estimating workflows; **P2** improves usability, maintainability, and larger-model behavior. “Done when” is an acceptance gate for handover.
 
@@ -251,7 +262,7 @@ Done when: at least three fixtures—simple rectangle, L-shaped home, and a diff
 
 ### E1 — Make estimating and BOM results consistent and explainable · P1
 
-Start: Pricing → BOM → selected assembly. Owner: estimating/backend expert. Files: `materials.py`, `pricingPanel.ts`, `db.py`, `schema.sql`, `bomPanel.ts`, `ui.ts`, preview responses.
+Start: Pricing → BOM → selected assembly. Owner: estimating/backend expert. Files: `materials.py`, `pricingPanel.ts`, `db.py`, `bom_queries.py`, `bomPanel.ts`, `ui.ts`, preview responses.
 
 Actions:
 
@@ -386,32 +397,75 @@ Routine baseline commands from a configured environment:
 ```bash
 # From the repository root, with backend dependencies installed:
 cd backend
-python -m pytest test_smoke.py -q
+python -m pytest -q
 ```
 
 ```bash
-# From the repository root, with a supported Node version:
+# From the repository root, verified with Node 24:
 cd frontend
 npm ci
 npm run build
+npm run test:contracts
+# With backend Python active and Playwright Chromium installed:
+npm run test:browser
 ```
 
-Keep runtime/API/browser mutation tests on a temporary database. The current smoke fixture already patches `db.DB_PATH`. When inspecting a real development project, use a SQLite-aware backup before testing reset/commit/regeneration. Merely opening `/api/model` with different parameters can mutate today's database.
+The current browser suite includes the seven-page accessibility audit. See
+`benchmarks/README.md` for fresh-source reproduction/profiling and
+`benchmarks/ui-assessment.md` for optional focused capture.
+
+Keep runtime/API/browser mutation tests on a temporary database. The current smoke fixture already patches `db.DB_PATH`. When inspecting a real development project, use a SQLite-aware backup before testing reset/commit/regeneration. Current GET endpoints are non-mutating; use explicit POST commands for configuration changes.
 
 ## 9. Expert handover and resume record
 
-Current status: **assessment complete; all implementation tickets proposed/unstarted**. The 20-test suite and production build pass at the recorded baseline, while the additional failures in section 4 remain unresolved.
+Current status: **implementation active — v2.17.0 numerical/resource-contract/framing-handover/fresh-source milestone verified**.
+The original assessment baseline is retained above. The current worktree has
+**224 passing backend tests** and a passing production build/frontend contracts.
+Fresh locked installations also pass full isolated Chromium checks for
+CSV/mobile/storage, homes/pricing, model browsing/inspection/views and isolation,
+including the seven-page desktop/mobile accessibility assessment.
+Reusable rectangle/L-shaped/offset two-level fixtures, connected automatic webs, portable import/export, editing, estimates, drafts and request-race/retry workflows pass domain/browser checks. CI is configured
+but has not been run remotely. Remaining implementation and review gates are listed below.
+
+The v2.17.0 worktree adds derived finite/section/repeated-truss placement checks,
+bounded CSV row reading, JSON-safe row/field errors, split/porch allocation
+preflight, exact byte-boundary acceptance and framing progress guards. Local-origin
+floor calculations preserve member counts/dimensions under positive/negative
+10^12 mm translations. Thirty-three resource/API regressions pass; full contract
+coverage remains open. No arbitrary coordinate cap or reduced feature range was
+introduced. Large multipart tests require worker-thread wakeup sockets in restricted
+execution environments; the streamed API body test passes.
+
+[The framing handover](backend/FRAMING.md) describes every named template, its
+source formulas/support limitations, wall panel/opening behavior, physical cuts
+versus graph segments, placement adapters and legacy layouts. Qualified
+fabrication/support review and implementation gates remain open.
+
+| Ticket | Current status | Evidence / remaining gate |
+|---|---|---|
+| **S1** | **Implemented and verified** | `migrations.py`, `manage_db.py`, transactional `db.rebuild`, configurable path, `/api/health`; tests cover generation/late-insert/migration rollback, preserved IDs/batches, legacy upgrade, corrupt metadata, future schemas, WAL snapshot, and restore. |
+| **S2** | **Core implemented; compatibility/coverage gates remain** | Independent project databases, IDs/names/revisions/modes, non-mutating GET, explicit settings POST, scoped reads/exports, custom retention, distinct CSV creation, source definitions/manual PUT, atomic If-Match checks, signed previews, idempotency and 20-revision restore implemented. Isolation/retry/restore/update/concurrency/export tests pass. Saved CSV/wall/truss editing, replacement previews, scoped editing drafts, definition/history revision checks and concurrent/lost-reply home-creation retries are implemented and verified. Stricter default-project compatibility migration and full definition/rollback acceptance coverage remain. |
+| **V1** | **In progress** | Shared CSV/domain mapping, row/field errors, empty replacement rejection, finite/positive dimensions, explicit zero, scoped duplicate IDs, upload/row/member limits, edited-row review and UI preview gating verified. v2.17 adds derived finite/section/truss-placement checks, JSON-safe field errors, bounded row reading, split/porch preflight and spacing progress guards; 33 resource/API regressions pass, including exact/overflow bytes, no-mutation review/preview/commit rejection and translated floors. Signed server preview/revision proof implemented; token-optional default compatibility and complete resource-bound/contract acceptance remain. Combined saved-project appends and complex custom-topology CPU/resource behavior need explicit acceptance; existing operation budgets are not a global project cap. Panelized mixed CSV and mm/metres/feet-inches examples now validate, preview and commit. |
+| **V2** | **Core implemented and verified** | Shared text escaping/link protocol checks/storage wrapper; selection/warnings/manual/pricing safe rendering and pending/error handling implemented. Home/form/assembly drafts retain unfinished custom CSV. Draft schema 2 also retains raw opening blanks and migrates schema 1 numeric openings/legacy forms. Node contracts cover conversion, typed fields and recovery. CSV column attributes are escaped. Guided/native/server error feedback, focus, blank reloads, decimal ranges and lost-response retry pass the full Chromium suite. |
+| **W1** | **Core implemented; fabrication/review gates remain** | Shared sample/manual/CSV routine, opening-aware nogs, full jamb/bearing-jack/sill/cripple behavior, logical runs and fabrication panels, distinct joint studs, intent/physical IDs and active metadata implemented. Parallel frame plies preserve opening width; separate framing-material controls added. Mixed long-wall and unit examples pass API checks. `backend/FRAMING.md` documents panel/opening/ply intent and remaining connection work. Complete join/lap/detail export and qualified panel/connection/bracing review remain. |
+| **T1** | **Core implemented; review/contract gates remain** | Canonical connected graphs/chord splitting, aligned bearing/heel/overhang, vertical king posts, scissor/attic differentiation, girder roles/plies, physical instance IDs, persisted manual topology and unchecked status implemented. 19 topology/endpoint/template/API tests pass. Custom CSV headers/quotes/errors implemented; browser check passed. Continuous chord/custom-row cuts now have separate physical IDs/full lengths and persisted topology schema 2 mapping. `backend/FRAMING.md` now documents all six input types, exact template formulas, worked graph/cut/ply counts, support limitations and placement/legacy conventions. Explicit support/section-intent metadata, legacy review/recreation acceptance and supplier review remain. |
+| **T2 / D1** | **Core implemented and verified; review/reproducibility gates remain** | Strict home schema 1, stable levels/walls/openings, floor polygons/holes/directions/finite supports, roof zones, sample adapter and three independent saved-home fixtures implemented. Shared connected automatic trusses have webs, actual elevations/bearing checks, first/last placement and individual instance/cut IDs; duplicate systems are omitted. The v2.11 adapter fixes a half-span placement error; 10 cases verify actual physical bearing nodes against translated wall runs/tops across both axes and all five templates. 35 home-domain/API tests pass. Older saved layouts remain reviewable and require explicit regeneration for corrected positions. Roof junction/hip transitions, engineered floor trimming/support/load transfer, specialized supplier review and cross-version catalogue/rule replay remain. |
+| **E1** | **Core implemented and verified; optional workflows remain** | Physical-cut aggregation, independent ply/board counts, net/stock metres and costs, NULL unpriced rows/coverage, historical source/currency/FX, treatment/section scope, override/undo provenance and overflow rollback pass 12 new tests. Expanded tables and visible unpriced coverage pass desktop/mobile/browser checks; quote override/clear workflow is documented. Automatic supplier refresh/import and optional project currency remain future workflows. |
+| **R1** | **Software diagnostics implemented; qualified audit remains** | Four distinct states, actual oriented height/explicit datum, source-assumption inputs, connected physical truss geometry, explicit unchecked capacity/load path, versioned rule register and per-revision transactional assessment snapshots implemented. Profile 2 adds physical bearing alignment and detects older displaced automatic layouts, raised nodes and missing walls; nine tests cover these plus height/topology/status/assumptions/aggregation/persistence/exposure and whole-timber-model level selection. Independent standards/manufacturer/jurisdiction audit and qualified structural/supplier sign-off remain required; software does not grant approval. |
+| **U1** | **Core implemented and verified** | Central displayed-home/preview/view state, per-home camera/projection/zoom/filter/level/layer/selection/isolation recovery and URL hints implemented. Stable physical/node identities reconcile revisions. Preview filters/cameras are temporary; Cancel restores committed view while deliberate display preferences survive. Corrupt view download/discard and storage denial leave live controls usable. Node and extended Chromium checks pass, including view reload/home switching, filter/layer/section/camera restoration and warning reveal. Existing home/revision/epoch guards, exclusive writes, global pending, edit/mode/home cancellation and abortable previews retain regression coverage. Preserve these contracts while completing U2. |
+| **U2** | **Core implemented and locally assessed** | Orthographic views, fit-selection, clipped bounds/picking/dimensions, roof/level isolation, mobile bottom sheet and wide tables retain regression coverage. Guided form groups, derived intent, inline native/server errors, raw opening drafts, review stages, retry/stale-error recovery and shared stylesheet are implemented. Settings pressed state and named/described CSV cells added. Full guided-form Chromium acceptance passed, including mobile overlay closure and reachable field focus. Level/source/wall/layout/instance/panel/cut hierarchy, lazy member batches, exact assembly BOM, row IDs and keyboard camera controls pass focused/full Chromium checks, including 260 instances/paging focus, scope races and separate mobile canvas/inspector space. Seven-page Chromium AX/ARIA/Tab traversal at desktop/mobile, native modal boundaries, keyboard CSV preview/cancel, tooltip placement and measured feedback contrast now pass; screenshots and protocol are in `benchmarks/ui-assessment.md`. Physical-device, actual assistive-technology, enlarged-text and broader user/visual review remain. |
+| **M1** | **In progress** | Pinned backend resolution, explicit Pydantic, common VERSION, browser script and CI added. Shared cutting/BOM SQL now serves persisted views and navigation without changing schema/CSV columns. Request references, safe structured failure/CSV validation logs, API/identity/local-deployment guidance, five-fixture backend/desktop/mobile profiling and explicit instance-buffer disposal are implemented. The viewer renders on scene/camera changes and pauses when settled while preserving rotation/damping; five fixtures × two viewports verify zero idle submissions and stable rebuild buffers. The confirmed repeated timber-level scan is removed without changing any complete response in five paired fixtures; the three-storey median read fell about 462 → 194 ms on the local host. Optional `--profile-reads` diagnoses current SQL/decoding cost. Fresh-source/fresh locked-install reproduction passed 224 backend tests/build/contracts/full Chromium. Numerical/byte/row/member/progress contracts now have 33 additional API/domain regressions. Further domain separation, full contract/resource-bound coverage, physical device budgets and owner-committed/remote-CI verification remain. |
 
 The incoming expert should update this record when work begins:
 
 | Field | Initial handover value |
 |---|---|
-| Active ticket | None. Recommended first: **S1**, then **S2/V1**. |
-| Page to open | **Settings / Warnings** for persistence; **Imports / Drawing Plans** for the first user-facing reproduction. |
+| Active ticket | Continue **M1/V1** full API/resource-bound acceptance and measured estimating-read/payload work, then **W1/T1** fabrication detail exports and explicit support/section-intent metadata; current template formulas/boundaries are documented in `backend/FRAMING.md`. The seven-page local **U2** assessment passes; arrange physical-device/assistive/enlarged-text review. Continue measured API/rendering improvements; agree reference devices/budgets and verify an owner-committed revision in CI. Preserve U1/V2 view and draft contracts. Qualified R1 standards/manufacturer/structural audit remains external and unapproved. |
+| Page to open | Open **Imports / Drawing Plans → CSV/Home validation** for **V1** resource/contract acceptance; inspect `manual_inputs.py`, `home_definition.py`, `imports/contracts.py` and server body limits. For **M1**, start **BOM / Settings-Warnings** and `db.py` estimating SQL/member decoding using `--profile-reads`; `benchmarks/ui-assessment.md` preserves local U2 screenshots/keyboard results. Continue **Manual Wall / Manual Truss** for W1/T1 details and **Settings / Warnings** for R1 qualified review. |
 | Required domain collaboration | Qualified structural/supplier reviewer for W1, T1/T2, R1 and panel-envelope interpretation. |
 | Owner decisions | C1–C6 pending; no scope/framework restriction approved in this plan. |
-| Known failing fixtures | Bundled CSV; CSV-only project after parameter change; window/nog case; custom chord-only/zero-length trusses; repeated truss identity; price override; mobile pinning; failed rebuild. |
-| Last verified baseline | Commit 28c1b6b; 20 backend tests pass; TypeScript/Vite build passes; targeted API/SQL/browser findings recorded above. |
+| Known unresolved fixtures | Physical-device/assistive/enlarged-text and broader UI assessment, complete API/resource-bound acceptance, physical reference devices/budgets and owner-committed/remote-CI verification, roof joins/hip transitions, engineered floor trimming/support/load transfer, panel joins/bracing, qualified template review, cross-version price/rule replay and supplier stock/splice/optimization assumptions. Guided forms and view/request/persistence/identity/estimate fixtures retain regression coverage. Pre-2.11 automatic layouts need explicit regeneration and remain preserved in old revisions. |
+| Last verified milestone | v2.17.0 uncommitted worktree after assessment commit 39f086c: a fresh source copy with fresh locked Python/npm installs passed 224 backend tests, production build, Node contracts and full Chromium, including seven-page desktop/mobile accessibility and prior home/view/draft/race/retry contracts. Thirty-three numerical/resource/API regressions verify derived overflow rejection across CSV review/preview/commit without mutation, JSON-safe row/field errors, bounded row allocation, exact/overflow body/CSV bytes and split budgets, progress guards and translated floor geometry. Five fixtures × two viewports preserve member counts, zero settled idle submissions, active rotation and stable rebuild buffers. Current source fingerprint and refreshed CPU/read diagnostics are in benchmarks/local-reference.json and backend-read-reference.json; v2.16 captures remain historical baselines. Current template/panel/cut/bearing/legacy conventions are documented in backend/FRAMING.md. Offline reproduction uses complete caches but fresh installations; no owner database is touched. SQLite schema 5, rule profile 2 and draft schema 2 remain. |
 | Next handover must include | Branch/commit, active ticket/status, migrations/backup requirements, approval decisions, test results, outstanding failures, next page/files to inspect, and project fixture/reproduction commands. |
 
 For each completed ticket, record **what changed, why, acceptance results, remaining limitations, and the exact next ticket/page**. Mark a ticket complete only when its exit criteria have evidence. Preserve unresolved design assumptions in the handover so the next expert can resume without rediscovering the same defects.

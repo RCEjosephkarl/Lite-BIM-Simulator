@@ -47,14 +47,10 @@ NON_WALL_CODES = {"joist", "blocking", "ceiling_joist", "rafter",
                   "fascia", "post", "beam", "slab"}
 
 
-@pytest.fixture(autouse=True)
-def tmp_db(tmp_path, monkeypatch):
-    """Keep the dev model.db out of the tests' way."""
-    monkeypatch.setattr(db, "DB_PATH", tmp_path / "test.db")
-
-
 def get_model(params: dict | None = None) -> dict:
-    r = client.get("/api/model", params=params or {})
+    initialized = client.post("/api/project/initialize")
+    assert initialized.status_code == 200, initialized.text
+    r = client.post("/api/model", params=params) if params else client.get("/api/model")
     assert r.status_code == 200, r.text
     return r.json()
 
@@ -78,8 +74,9 @@ def test_default_model_backwards_compatible():
     studs = of_type(m, {"stud"})
     assert studs and all(e["h_mm"] == 45 for e in studs)
     assert m["meta"]["frame_segments"][0]["segment_id"] == "G-EXT-001"
-    # long sample walls carry envelope notes; nothing else should warn
-    assert all("6 m x 3 m" in w for w in m["meta"]["warnings"])
+    # Existing overlapping sample roof zones now disclose unresolved joins.
+    assert all("6 m x 3 m" in w or "roof join" in w for w in m["meta"]["warnings"])
+    assert any("valley/trim/load transfer unresolved" in w for w in m["meta"]["warnings"])
 
 
 def test_old_params_still_work():
@@ -99,7 +96,7 @@ def test_overall_overrides_apply_to_all_walls():
     assert all(e["material"] == "SG10" for e in stud_like)
     studs = of_type(m, {"stud"})
     assert all(e["stud_spacing_mm"] == 400 for e in studs)
-    assert all(e["h_mm"] == 90 for e in studs)  # 2-ply visual width
+    assert all(e["h_mm"] == 45 and e["w_mm"] == 180 for e in studs)  # parallel wall plies retain opening clearance
     plates = of_type(m, {"plate_top"})
     assert all(e["plies"] == 2 and e["h_mm"] == 45 for e in plates)
     assert CUSTOM_SPACING_NOTE in m["meta"]["warnings"]

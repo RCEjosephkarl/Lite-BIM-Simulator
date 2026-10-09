@@ -1,0 +1,2106 @@
+{
+  "benchmark_schema_version": 1,
+  "recorded_at": "2026-10-09T11:22:45.109Z",
+  "application_version": "2.14.0",
+  "source_fingerprint": "167767a06d4c8ca82e8b0aae27cdbd02df50cd304af1c640a88f1455c7f7f60e",
+  "environment": {
+    "node": "v24.16.0",
+    "chromium": "151.0.7922.34",
+    "headless": true
+  },
+  "backend": {
+    "benchmark_schema_version": 1,
+    "recorded_at": "2026-10-09T11:22:37.642351+00:00",
+    "application_version": "2.14.0",
+    "source_fingerprint": "167767a06d4c8ca82e8b0aae27cdbd02df50cd304af1c640a88f1455c7f7f60e",
+    "environment": {
+      "python": "3.12.3",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+      "cpu_affinity_count": 8,
+      "fastapi": "0.115.14",
+      "pydantic": "2.14.0"
+    },
+    "timing_unit": "milliseconds",
+    "repeats": 3,
+    "fixtures": [
+      {
+        "id": "rectangle",
+        "member_count": 271,
+        "generation_member_count": 271,
+        "json_bytes": 465126,
+        "bom_rows": 31,
+        "generation_ms": {
+          "samples": 3,
+          "minimum": 6.647,
+          "median": 6.883,
+          "p95": 6.903,
+          "maximum": 6.903
+        },
+        "fresh_database_pipeline_ms": {
+          "samples": 3,
+          "minimum": 40.785,
+          "median": 41.499,
+          "p95": 44.242,
+          "maximum": 44.242
+        },
+        "model_read_review_estimate_ms": {
+          "samples": 3,
+          "minimum": 14.159,
+          "median": 14.457,
+          "p95": 14.683,
+          "maximum": 14.683
+        },
+        "json_serialization_ms": {
+          "samples": 3,
+          "minimum": 2.26,
+          "median": 2.343,
+          "p95": 2.453,
+          "maximum": 2.453
+        },
+        "bom_navigation_query_ms": {
+          "samples": 3,
+          "minimum": 3.066,
+          "median": 3.081,
+          "p95": 3.289,
+          "maximum": 3.289
+        },
+        "generation_python_alloc_peak_bytes": 331099
+      },
+      {
+        "id": "l_shape",
+        "member_count": 459,
+        "generation_member_count": 459,
+        "json_bytes": 769498,
+        "bom_rows": 42,
+        "generation_ms": {
+          "samples": 3,
+          "minimum": 11.291,
+          "median": 11.377,
+          "p95": 11.475,
+          "maximum": 11.475
+        },
+        "fresh_database_pipeline_ms": {
+          "samples": 3,
+          "minimum": 59.154,
+          "median": 60.495,
+          "p95": 63.366,
+          "maximum": 63.366
+        },
+        "model_read_review_estimate_ms": {
+          "samples": 3,
+          "minimum": 22.385,
+          "median": 22.555,
+          "p95": 23.336,
+          "maximum": 23.336
+        },
+        "json_serialization_ms": {
+          "samples": 3,
+          "minimum": 3.257,
+          "median": 3.963,
+          "p95": 4.331,
+          "maximum": 4.331
+        },
+        "bom_navigation_query_ms": {
+          "samples": 3,
+          "minimum": 4.26,
+          "median": 4.296,
+          "p95": 4.453,
+          "maximum": 4.453
+        },
+        "generation_python_alloc_peak_bytes": 555523
+      },
+      {
+        "id": "two_level",
+        "member_count": 387,
+        "generation_member_count": 387,
+        "json_bytes": 616430,
+        "bom_rows": 48,
+        "generation_ms": {
+          "samples": 3,
+          "minimum": 7.144,
+          "median": 7.166,
+          "p95": 7.892,
+          "maximum": 7.892
+        },
+        "fresh_database_pipeline_ms": {
+          "samples": 3,
+          "minimum": 49.549,
+          "median": 52.999,
+          "p95": 54.646,
+          "maximum": 54.646
+        },
+        "model_read_review_estimate_ms": {
+          "samples": 3,
+          "minimum": 19.084,
+          "median": 19.323,
+          "p95": 20.608,
+          "maximum": 20.608
+        },
+        "json_serialization_ms": {
+          "samples": 3,
+          "minimum": 2.743,
+          "median": 2.89,
+          "p95": 3.053,
+          "maximum": 3.053
+        },
+        "bom_navigation_query_ms": {
+          "samples": 3,
+          "minimum": 4.005,
+          "median": 4.133,
+          "p95": 4.498,
+          "maximum": 4.498
+        },
+        "generation_python_alloc_peak_bytes": 447475
+      },
+      {
+        "id": "sample_3_storeys",
+        "member_count": 3687,
+        "generation_member_count": 3687,
+        "json_bytes": 6109284,
+        "bom_rows": 671,
+        "generation_ms": {
+          "samples": 3,
+          "minimum": 54.542,
+          "median": 58.436,
+          "p95": 59.455,
+          "maximum": 59.455
+        },
+        "fresh_database_pipeline_ms": {
+          "samples": 3,
+          "minimum": 525.85,
+          "median": 536.75,
+          "p95": 561.116,
+          "maximum": 561.116
+        },
+        "model_read_review_estimate_ms": {
+          "samples": 3,
+          "minimum": 411.454,
+          "median": 448.39,
+          "p95": 465.687,
+          "maximum": 465.687
+        },
+        "json_serialization_ms": {
+          "samples": 3,
+          "minimum": 30.235,
+          "median": 31.485,
+          "p95": 33.247,
+          "maximum": 33.247
+        },
+        "bom_navigation_query_ms": {
+          "samples": 3,
+          "minimum": 35.099,
+          "median": 35.871,
+          "p95": 38.154,
+          "maximum": 38.154
+        },
+        "generation_python_alloc_peak_bytes": 5052893
+      },
+      {
+        "id": "rectangle_260_trusses",
+        "member_count": 3651,
+        "generation_member_count": 3651,
+        "json_bytes": 6554249,
+        "bom_rows": 31,
+        "generation_ms": {
+          "samples": 3,
+          "minimum": 33.437,
+          "median": 34.649,
+          "p95": 37.288,
+          "maximum": 37.288
+        },
+        "fresh_database_pipeline_ms": {
+          "samples": 3,
+          "minimum": 322.633,
+          "median": 332.038,
+          "p95": 348.667,
+          "maximum": 348.667
+        },
+        "model_read_review_estimate_ms": {
+          "samples": 3,
+          "minimum": 171.727,
+          "median": 175.634,
+          "p95": 190.623,
+          "maximum": 190.623
+        },
+        "json_serialization_ms": {
+          "samples": 3,
+          "minimum": 32.033,
+          "median": 34.079,
+          "p95": 34.554,
+          "maximum": 34.554
+        },
+        "bom_navigation_query_ms": {
+          "samples": 3,
+          "minimum": 20.554,
+          "median": 20.62,
+          "p95": 20.857,
+          "maximum": 20.857
+        },
+        "generation_python_alloc_peak_bytes": 4453937
+      }
+    ],
+    "process_peak_rss_bytes": 114896896
+  },
+  "fixtures": [
+    {
+      "id": "l_shape",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "loopback_transfer": [
+        {
+          "loopback_response_and_body_ms": 77.006394,
+          "json_parse_ms": 3.0602880000005825,
+          "body_bytes": 769665
+        },
+        {
+          "loopback_response_and_body_ms": 49.88801600000079,
+          "json_parse_ms": 2.63693499999863,
+          "body_bytes": 769665
+        },
+        {
+          "loopback_response_and_body_ms": 44.74515900000006,
+          "json_parse_ms": 2.1058830000001763,
+          "body_bytes": 769665
+        }
+      ],
+      "rebuild_count": 3,
+      "idle_frame_sample_ms": 2000,
+      "ray_pick_attempts": 20,
+      "ray_pick_hits": 20,
+      "before": {
+        "metrics": {
+          "model_member_count": 459,
+          "instanced_meshes": 8,
+          "timings": {
+            "build_ms": {
+              "samples": 1,
+              "minimum": 5.600000001490116,
+              "median": 5.600000001490116,
+              "p95": 5.600000001490116,
+              "maximum": 5.600000001490116
+            },
+            "selection_ms": {
+              "samples": 1,
+              "minimum": 0.30000000074505806,
+              "median": 0.30000000074505806,
+              "p95": 0.30000000074505806,
+              "maximum": 0.30000000074505806
+            },
+            "ray_pick_ms": null,
+            "frame_interval_ms": {
+              "samples": 9,
+              "minimum": 81.30000000074506,
+              "median": 90.39999999850988,
+              "p95": 302.80000000074506,
+              "maximum": 302.80000000074506
+            },
+            "render_submit_ms": {
+              "samples": 10,
+              "minimum": 0.6000000014901161,
+              "median": 0.900000000372529,
+              "p95": 27.600000001490116,
+              "maximum": 27.600000001490116
+            }
+          },
+          "renderer": {
+            "geometries": 10,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 10,
+            "triangles": 5510,
+            "explicit_buffer_creates": 48,
+            "explicit_buffer_deletes": 0,
+            "explicit_buffer_balance": 48,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              19.861346669194067,
+              12.036229075627272,
+              9.795929947515917
+            ],
+            "target": [
+              5.7827083608390755,
+              2.1811822597787804,
+              -4.2827083608390755
+            ],
+            "near": 0.01,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 355,
+          "Nodes": 6228,
+          "JSHeapUsedSize": 5467480,
+          "JSHeapTotalSize": 6414336
+        }
+      },
+      "after": {
+        "metrics": {
+          "model_member_count": 459,
+          "instanced_meshes": 8,
+          "timings": {
+            "build_ms": {
+              "samples": 3,
+              "minimum": 1.4000000022351742,
+              "median": 1.699999999254942,
+              "p95": 2.199999999254942,
+              "maximum": 2.199999999254942
+            },
+            "selection_ms": {
+              "samples": 23,
+              "minimum": 0,
+              "median": 1.3999999985098839,
+              "p95": 3.399999998509884,
+              "maximum": 4.300000000745058
+            },
+            "ray_pick_ms": {
+              "samples": 20,
+              "minimum": 1.0999999977648258,
+              "median": 1.599999999627471,
+              "p95": 4.800000000745058,
+              "maximum": 5.400000002235174
+            },
+            "frame_interval_ms": {
+              "samples": 25,
+              "minimum": 68.09999999776483,
+              "median": 77.70000000298023,
+              "p95": 86.5,
+              "maximum": 90.20000000298023
+            },
+            "render_submit_ms": {
+              "samples": 26,
+              "minimum": 0.29999999701976776,
+              "median": 0.5,
+              "p95": 0.6999999992549419,
+              "maximum": 1.0999999977648258
+            }
+          },
+          "renderer": {
+            "geometries": 10,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 10,
+            "triangles": 5510,
+            "explicit_buffer_creates": 192,
+            "explicit_buffer_deletes": 144,
+            "explicit_buffer_balance": 48,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              19.861346669194067,
+              12.036229075627272,
+              9.795929947515917
+            ],
+            "target": [
+              5.7827083608390755,
+              2.1811822597787804,
+              -4.2827083608390755
+            ],
+            "near": 0.01,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 355,
+          "Nodes": 6698,
+          "JSHeapUsedSize": 5892504,
+          "JSHeapTotalSize": 6938624
+        }
+      }
+    },
+    {
+      "id": "l_shape",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "loopback_transfer": [
+        {
+          "loopback_response_and_body_ms": 77.006394,
+          "json_parse_ms": 3.0602880000005825,
+          "body_bytes": 769665
+        },
+        {
+          "loopback_response_and_body_ms": 49.88801600000079,
+          "json_parse_ms": 2.63693499999863,
+          "body_bytes": 769665
+        },
+        {
+          "loopback_response_and_body_ms": 44.74515900000006,
+          "json_parse_ms": 2.1058830000001763,
+          "body_bytes": 769665
+        }
+      ],
+      "rebuild_count": 3,
+      "idle_frame_sample_ms": 2000,
+      "ray_pick_attempts": 20,
+      "ray_pick_hits": 20,
+      "before": {
+        "metrics": {
+          "model_member_count": 459,
+          "instanced_meshes": 8,
+          "timings": {
+            "build_ms": {
+              "samples": 1,
+              "minimum": 4.600000001490116,
+              "median": 4.600000001490116,
+              "p95": 4.600000001490116,
+              "maximum": 4.600000001490116
+            },
+            "selection_ms": {
+              "samples": 1,
+              "minimum": 0.30000000074505806,
+              "median": 0.30000000074505806,
+              "p95": 0.30000000074505806,
+              "maximum": 0.30000000074505806
+            },
+            "ray_pick_ms": null,
+            "frame_interval_ms": {
+              "samples": 9,
+              "minimum": 34.400000002235174,
+              "median": 44,
+              "p95": 138.5,
+              "maximum": 138.5
+            },
+            "render_submit_ms": {
+              "samples": 10,
+              "minimum": 0.6000000014901161,
+              "median": 0.9000000022351742,
+              "p95": 14.100000001490116,
+              "maximum": 14.100000001490116
+            }
+          },
+          "renderer": {
+            "geometries": 10,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 10,
+            "triangles": 5510,
+            "explicit_buffer_creates": 48,
+            "explicit_buffer_deletes": 0,
+            "explicit_buffer_balance": 48,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              34.0294975120207,
+              21.95393466560592,
+              23.96408079034255
+            ],
+            "target": [
+              5.7827083608390755,
+              2.1811822597787804,
+              -4.2827083608390755
+            ],
+            "near": 0.01,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 355,
+          "Nodes": 6228,
+          "JSHeapUsedSize": 5467476,
+          "JSHeapTotalSize": 6152192
+        }
+      },
+      "after": {
+        "metrics": {
+          "model_member_count": 459,
+          "instanced_meshes": 8,
+          "timings": {
+            "build_ms": {
+              "samples": 3,
+              "minimum": 1.3999999985098839,
+              "median": 1.3999999985098839,
+              "p95": 2.300000000745058,
+              "maximum": 2.300000000745058
+            },
+            "selection_ms": {
+              "samples": 23,
+              "minimum": 0.09999999776482582,
+              "median": 1.300000000745058,
+              "p95": 2,
+              "maximum": 3.100000001490116
+            },
+            "ray_pick_ms": {
+              "samples": 20,
+              "minimum": 1.1000000014901161,
+              "median": 1.8999999985098839,
+              "p95": 4.799999997019768,
+              "maximum": 5.199999999254942
+            },
+            "frame_interval_ms": {
+              "samples": 79,
+              "minimum": 20.399999998509884,
+              "median": 24.900000002235174,
+              "p95": 30.199999999254942,
+              "maximum": 35.19999999925494
+            },
+            "render_submit_ms": {
+              "samples": 80,
+              "minimum": 0.19999999925494194,
+              "median": 0.3999999985098839,
+              "p95": 0.5999999977648258,
+              "maximum": 0.8000000007450581
+            }
+          },
+          "renderer": {
+            "geometries": 10,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 10,
+            "triangles": 5510,
+            "explicit_buffer_creates": 192,
+            "explicit_buffer_deletes": 144,
+            "explicit_buffer_balance": 48,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              34.0294975120207,
+              21.95393466560592,
+              23.96408079034255
+            ],
+            "target": [
+              5.7827083608390755,
+              2.1811822597787804,
+              -4.2827083608390755
+            ],
+            "near": 0.01,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 355,
+          "Nodes": 6698,
+          "JSHeapUsedSize": 5901064,
+          "JSHeapTotalSize": 6676480
+        }
+      }
+    },
+    {
+      "id": "rectangle",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "loopback_transfer": [
+        {
+          "loopback_response_and_body_ms": 25.85769999999684,
+          "json_parse_ms": 1.4698130000033416,
+          "body_bytes": 465284
+        },
+        {
+          "loopback_response_and_body_ms": 27.49220399999831,
+          "json_parse_ms": 0.9691560000028403,
+          "body_bytes": 465284
+        },
+        {
+          "loopback_response_and_body_ms": 24.086606999997457,
+          "json_parse_ms": 0.9898430000030203,
+          "body_bytes": 465284
+        }
+      ],
+      "rebuild_count": 3,
+      "idle_frame_sample_ms": 2000,
+      "ray_pick_attempts": 20,
+      "ray_pick_hits": 20,
+      "before": {
+        "metrics": {
+          "model_member_count": 271,
+          "instanced_meshes": 11,
+          "timings": {
+            "build_ms": {
+              "samples": 1,
+              "minimum": 3.699999999254942,
+              "median": 3.699999999254942,
+              "p95": 3.699999999254942,
+              "maximum": 3.699999999254942
+            },
+            "selection_ms": {
+              "samples": 1,
+              "minimum": 0.4000000022351742,
+              "median": 0.4000000022351742,
+              "p95": 0.4000000022351742,
+              "maximum": 0.4000000022351742
+            },
+            "ray_pick_ms": null,
+            "frame_interval_ms": {
+              "samples": 9,
+              "minimum": 69.39999999850988,
+              "median": 86.90000000223517,
+              "p95": 261.30000000074506,
+              "maximum": 261.30000000074506
+            },
+            "render_submit_ms": {
+              "samples": 10,
+              "minimum": 0.6000000014901161,
+              "median": 0.9500000011175871,
+              "p95": 14.199999999254942,
+              "maximum": 14.199999999254942
+            }
+          },
+          "renderer": {
+            "geometries": 13,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 13,
+            "triangles": 3254,
+            "explicit_buffer_creates": 66,
+            "explicit_buffer_deletes": 0,
+            "explicit_buffer_balance": 66,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              15.063148001999497,
+              9.57538586117843,
+              7.563148001999498
+            ],
+            "target": [
+              4.500000000000001,
+              2.1811822597787804,
+              -3.000000000000001
+            ],
+            "near": 0.01,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 290,
+          "Nodes": 5233,
+          "JSHeapUsedSize": 5289952,
+          "JSHeapTotalSize": 6152192
+        }
+      },
+      "after": {
+        "metrics": {
+          "model_member_count": 271,
+          "instanced_meshes": 11,
+          "timings": {
+            "build_ms": {
+              "samples": 3,
+              "minimum": 1.4000000022351742,
+              "median": 2.2999999970197678,
+              "p95": 4.199999999254942,
+              "maximum": 4.199999999254942
+            },
+            "selection_ms": {
+              "samples": 23,
+              "minimum": 0.09999999776482582,
+              "median": 1.300000000745058,
+              "p95": 2,
+              "maximum": 3.2000000029802322
+            },
+            "ray_pick_ms": {
+              "samples": 20,
+              "minimum": 0.8999999985098839,
+              "median": 1.849999999627471,
+              "p95": 3.400000002235174,
+              "maximum": 4.5
+            },
+            "frame_interval_ms": {
+              "samples": 24,
+              "minimum": 66.80000000074506,
+              "median": 78.29999999888241,
+              "p95": 97.09999999776483,
+              "maximum": 153.80000000074506
+            },
+            "render_submit_ms": {
+              "samples": 25,
+              "minimum": 0.3999999985098839,
+              "median": 0.5,
+              "p95": 0.8000000007450581,
+              "maximum": 0.8999999985098839
+            }
+          },
+          "renderer": {
+            "geometries": 13,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 13,
+            "triangles": 3254,
+            "explicit_buffer_creates": 264,
+            "explicit_buffer_deletes": 198,
+            "explicit_buffer_balance": 66,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              15.063148001999497,
+              9.57538586117843,
+              7.563148001999498
+            ],
+            "target": [
+              4.500000000000001,
+              2.1811822597787804,
+              -3.000000000000001
+            ],
+            "near": 0.01,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 290,
+          "Nodes": 5703,
+          "JSHeapUsedSize": 5667480,
+          "JSHeapTotalSize": 6676480
+        }
+      }
+    },
+    {
+      "id": "rectangle",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "loopback_transfer": [
+        {
+          "loopback_response_and_body_ms": 25.85769999999684,
+          "json_parse_ms": 1.4698130000033416,
+          "body_bytes": 465284
+        },
+        {
+          "loopback_response_and_body_ms": 27.49220399999831,
+          "json_parse_ms": 0.9691560000028403,
+          "body_bytes": 465284
+        },
+        {
+          "loopback_response_and_body_ms": 24.086606999997457,
+          "json_parse_ms": 0.9898430000030203,
+          "body_bytes": 465284
+        }
+      ],
+      "rebuild_count": 3,
+      "idle_frame_sample_ms": 2000,
+      "ray_pick_attempts": 20,
+      "ray_pick_hits": 20,
+      "before": {
+        "metrics": {
+          "model_member_count": 271,
+          "instanced_meshes": 11,
+          "timings": {
+            "build_ms": {
+              "samples": 1,
+              "minimum": 4.600000001490116,
+              "median": 4.600000001490116,
+              "p95": 4.600000001490116,
+              "maximum": 4.600000001490116
+            },
+            "selection_ms": {
+              "samples": 1,
+              "minimum": 0.19999999925494194,
+              "median": 0.19999999925494194,
+              "p95": 0.19999999925494194,
+              "maximum": 0.19999999925494194
+            },
+            "ray_pick_ms": null,
+            "frame_interval_ms": {
+              "samples": 9,
+              "minimum": 30.600000001490116,
+              "median": 37.600000001490116,
+              "p95": 148.80000000074506,
+              "maximum": 148.80000000074506
+            },
+            "render_submit_ms": {
+              "samples": 10,
+              "minimum": 0.5999999977648258,
+              "median": 1,
+              "p95": 15.100000001490116,
+              "maximum": 15.100000001490116
+            }
+          },
+          "renderer": {
+            "geometries": 13,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 13,
+            "triangles": 3254,
+            "explicit_buffer_creates": 66,
+            "explicit_buffer_deletes": 0,
+            "explicit_buffer_balance": 66,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              25.69345691323956,
+              17.01660209904647,
+              18.19345691323956
+            ],
+            "target": [
+              4.500000000000001,
+              2.1811822597787804,
+              -3.000000000000001
+            ],
+            "near": 0.01,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 290,
+          "Nodes": 5233,
+          "JSHeapUsedSize": 5290988,
+          "JSHeapTotalSize": 6152192
+        }
+      },
+      "after": {
+        "metrics": {
+          "model_member_count": 271,
+          "instanced_meshes": 11,
+          "timings": {
+            "build_ms": {
+              "samples": 3,
+              "minimum": 1,
+              "median": 1.5,
+              "p95": 2.300000000745058,
+              "maximum": 2.300000000745058
+            },
+            "selection_ms": {
+              "samples": 23,
+              "minimum": 0,
+              "median": 1.199999999254942,
+              "p95": 1.699999999254942,
+              "maximum": 3.099999997764826
+            },
+            "ray_pick_ms": {
+              "samples": 20,
+              "minimum": 1,
+              "median": 1.3999999985098839,
+              "p95": 4.699999999254942,
+              "maximum": 5.200000002980232
+            },
+            "frame_interval_ms": {
+              "samples": 94,
+              "minimum": 17.399999998509884,
+              "median": 20.65000000037253,
+              "p95": 26.399999998509884,
+              "maximum": 43.099999997764826
+            },
+            "render_submit_ms": {
+              "samples": 95,
+              "minimum": 0.29999999701976776,
+              "median": 0.5,
+              "p95": 0.7000000029802322,
+              "maximum": 1.4000000022351742
+            }
+          },
+          "renderer": {
+            "geometries": 13,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 13,
+            "triangles": 3254,
+            "explicit_buffer_creates": 264,
+            "explicit_buffer_deletes": 198,
+            "explicit_buffer_balance": 66,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              25.69345691323956,
+              17.01660209904647,
+              18.19345691323956
+            ],
+            "target": [
+              4.500000000000001,
+              2.1811822597787804,
+              -3.000000000000001
+            ],
+            "near": 0.01,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 290,
+          "Nodes": 5703,
+          "JSHeapUsedSize": 5671408,
+          "JSHeapTotalSize": 6414336
+        }
+      }
+    },
+    {
+      "id": "rectangle_260_trusses",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "loopback_transfer": [
+        {
+          "loopback_response_and_body_ms": 311.3995020000002,
+          "json_parse_ms": 26.136356000002706,
+          "body_bytes": 6554407
+        },
+        {
+          "loopback_response_and_body_ms": 313.05209599999944,
+          "json_parse_ms": 12.88237300000037,
+          "body_bytes": 6554407
+        },
+        {
+          "loopback_response_and_body_ms": 360.2295079999967,
+          "json_parse_ms": 27.08139900000242,
+          "body_bytes": 6554407
+        }
+      ],
+      "rebuild_count": 3,
+      "idle_frame_sample_ms": 2000,
+      "ray_pick_attempts": 20,
+      "ray_pick_hits": 20,
+      "before": {
+        "metrics": {
+          "model_member_count": 3651,
+          "instanced_meshes": 11,
+          "timings": {
+            "build_ms": {
+              "samples": 1,
+              "minimum": 11,
+              "median": 11,
+              "p95": 11,
+              "maximum": 11
+            },
+            "selection_ms": {
+              "samples": 1,
+              "minimum": 0.5999999977648258,
+              "median": 0.5999999977648258,
+              "p95": 0.5999999977648258,
+              "maximum": 0.5999999977648258
+            },
+            "ray_pick_ms": null,
+            "frame_interval_ms": {
+              "samples": 13,
+              "minimum": 67.19999999925494,
+              "median": 152.90000000223517,
+              "p95": 347.5,
+              "maximum": 347.5
+            },
+            "render_submit_ms": {
+              "samples": 14,
+              "minimum": 0.5,
+              "median": 0.9000000022351742,
+              "p95": 22.199999999254942,
+              "maximum": 22.199999999254942
+            }
+          },
+          "renderer": {
+            "geometries": 13,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 13,
+            "triangles": 43814,
+            "explicit_buffer_creates": 66,
+            "explicit_buffer_deletes": 0,
+            "explicit_buffer_balance": 66,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              28.2579569219468,
+              20.013856252554177,
+              12.75379020026865
+            ],
+            "target": [
+              2.782708360839076,
+              2.1811822597787804,
+              -12.721458360839076
+            ],
+            "near": 0.014772994042615025,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 1262,
+          "Nodes": 15420,
+          "JSHeapUsedSize": 10841968,
+          "JSHeapTotalSize": 11919360
+        }
+      },
+      "after": {
+        "metrics": {
+          "model_member_count": 3651,
+          "instanced_meshes": 11,
+          "timings": {
+            "build_ms": {
+              "samples": 3,
+              "minimum": 5.100000001490116,
+              "median": 6,
+              "p95": 8.5,
+              "maximum": 8.5
+            },
+            "selection_ms": {
+              "samples": 23,
+              "minimum": 0.4000000022351742,
+              "median": 2.399999998509884,
+              "p95": 3.900000002235174,
+              "maximum": 4.699999999254942
+            },
+            "ray_pick_ms": {
+              "samples": 20,
+              "minimum": 2.400000002235174,
+              "median": 3.099999997764826,
+              "p95": 4.299999997019768,
+              "maximum": 8.200000002980232
+            },
+            "frame_interval_ms": {
+              "samples": 12,
+              "minimum": 136.39999999850988,
+              "median": 159.69999999925494,
+              "p95": 183.89999999850988,
+              "maximum": 183.89999999850988
+            },
+            "render_submit_ms": {
+              "samples": 13,
+              "minimum": 0.4000000022351742,
+              "median": 0.6000000014901161,
+              "p95": 3,
+              "maximum": 3
+            }
+          },
+          "renderer": {
+            "geometries": 13,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 13,
+            "triangles": 43814,
+            "explicit_buffer_creates": 264,
+            "explicit_buffer_deletes": 198,
+            "explicit_buffer_balance": 66,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              28.2579569219468,
+              20.013856252554177,
+              12.75379020026865
+            ],
+            "target": [
+              2.782708360839076,
+              2.1811822597787804,
+              -12.721458360839076
+            ],
+            "near": 0.014772994042615025,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 1262,
+          "Nodes": 15878,
+          "JSHeapUsedSize": 11263528,
+          "JSHeapTotalSize": 12181504
+        }
+      }
+    },
+    {
+      "id": "rectangle_260_trusses",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "loopback_transfer": [
+        {
+          "loopback_response_and_body_ms": 311.3995020000002,
+          "json_parse_ms": 26.136356000002706,
+          "body_bytes": 6554407
+        },
+        {
+          "loopback_response_and_body_ms": 313.05209599999944,
+          "json_parse_ms": 12.88237300000037,
+          "body_bytes": 6554407
+        },
+        {
+          "loopback_response_and_body_ms": 360.2295079999967,
+          "json_parse_ms": 27.08139900000242,
+          "body_bytes": 6554407
+        }
+      ],
+      "rebuild_count": 3,
+      "idle_frame_sample_ms": 2000,
+      "ray_pick_attempts": 20,
+      "ray_pick_hits": 20,
+      "before": {
+        "metrics": {
+          "model_member_count": 3651,
+          "instanced_meshes": 11,
+          "timings": {
+            "build_ms": {
+              "samples": 1,
+              "minimum": 8.800000000745058,
+              "median": 8.800000000745058,
+              "p95": 8.800000000745058,
+              "maximum": 8.800000000745058
+            },
+            "selection_ms": {
+              "samples": 1,
+              "minimum": 0.5,
+              "median": 0.5,
+              "p95": 0.5,
+              "maximum": 0.5
+            },
+            "ray_pick_ms": null,
+            "frame_interval_ms": {
+              "samples": 35,
+              "minimum": 14.800000000745058,
+              "median": 21.800000000745058,
+              "p95": 114.89999999850988,
+              "maximum": 249.39999999850988
+            },
+            "render_submit_ms": {
+              "samples": 36,
+              "minimum": 0.29999999701976776,
+              "median": 0.5,
+              "p95": 2.100000001490116,
+              "maximum": 16.199999999254942
+            }
+          },
+          "renderer": {
+            "geometries": 13,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 13,
+            "triangles": 43814,
+            "explicit_buffer_creates": 66,
+            "explicit_buffer_deletes": 0,
+            "explicit_buffer_balance": 66,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              53.89517811244203,
+              37.959911085900835,
+              38.39101139076389
+            ],
+            "target": [
+              2.782708360839076,
+              2.1811822597787804,
+              -12.721458360839076
+            ],
+            "near": 0.014772994042615025,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 1262,
+          "Nodes": 15420,
+          "JSHeapUsedSize": 10815992,
+          "JSHeapTotalSize": 11919360
+        }
+      },
+      "after": {
+        "metrics": {
+          "model_member_count": 3651,
+          "instanced_meshes": 11,
+          "timings": {
+            "build_ms": {
+              "samples": 3,
+              "minimum": 4.900000002235174,
+              "median": 5.600000001490116,
+              "p95": 6.200000002980232,
+              "maximum": 6.200000002980232
+            },
+            "selection_ms": {
+              "samples": 23,
+              "minimum": 0.30000000074505806,
+              "median": 1.800000000745058,
+              "p95": 2.699999999254942,
+              "maximum": 3.699999999254942
+            },
+            "ray_pick_ms": {
+              "samples": 20,
+              "minimum": 2,
+              "median": 2.400000002235174,
+              "p95": 4.699999999254942,
+              "maximum": 6.799999997019768
+            },
+            "frame_interval_ms": {
+              "samples": 26,
+              "minimum": 66.89999999850988,
+              "median": 75.19999999925494,
+              "p95": 85.70000000298023,
+              "maximum": 88.10000000149012
+            },
+            "render_submit_ms": {
+              "samples": 27,
+              "minimum": 0.30000000074505806,
+              "median": 0.3999999985098839,
+              "p95": 0.6000000014901161,
+              "maximum": 0.6000000014901161
+            }
+          },
+          "renderer": {
+            "geometries": 13,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 13,
+            "triangles": 43814,
+            "explicit_buffer_creates": 264,
+            "explicit_buffer_deletes": 198,
+            "explicit_buffer_balance": 66,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              53.89517811244203,
+              37.959911085900835,
+              38.39101139076389
+            ],
+            "target": [
+              2.782708360839076,
+              2.1811822597787804,
+              -12.721458360839076
+            ],
+            "near": 0.014772994042615025,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 1262,
+          "Nodes": 15878,
+          "JSHeapUsedSize": 11255960,
+          "JSHeapTotalSize": 11919360
+        }
+      }
+    },
+    {
+      "id": "sample_3_storeys",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "loopback_transfer": [
+        {
+          "loopback_response_and_body_ms": 582.8521760000003,
+          "json_parse_ms": 11.276952000000165,
+          "body_bytes": 6098321
+        },
+        {
+          "loopback_response_and_body_ms": 535.0027989999944,
+          "json_parse_ms": 24.942823000004864,
+          "body_bytes": 6098321
+        },
+        {
+          "loopback_response_and_body_ms": 545.1335810000019,
+          "json_parse_ms": 13.675556999995024,
+          "body_bytes": 6098321
+        }
+      ],
+      "rebuild_count": 3,
+      "idle_frame_sample_ms": 2000,
+      "ray_pick_attempts": 20,
+      "ray_pick_hits": 20,
+      "before": {
+        "metrics": {
+          "model_member_count": 3687,
+          "instanced_meshes": 18,
+          "timings": {
+            "build_ms": {
+              "samples": 1,
+              "minimum": 10,
+              "median": 10,
+              "p95": 10,
+              "maximum": 10
+            },
+            "selection_ms": {
+              "samples": 1,
+              "minimum": 0.6000000014901161,
+              "median": 0.6000000014901161,
+              "p95": 0.6000000014901161,
+              "maximum": 0.6000000014901161
+            },
+            "ray_pick_ms": null,
+            "frame_interval_ms": {
+              "samples": 28,
+              "minimum": 55.099999997764826,
+              "median": 63.899999998509884,
+              "p95": 246.29999999701977,
+              "maximum": 307.8999999985099
+            },
+            "render_submit_ms": {
+              "samples": 29,
+              "minimum": 0.30000000074505806,
+              "median": 0.5999999977648258,
+              "p95": 1.4000000022351742,
+              "maximum": 17.799999997019768
+            }
+          },
+          "renderer": {
+            "geometries": 20,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 20,
+            "triangles": 44246,
+            "explicit_buffer_creates": 108,
+            "explicit_buffer_deletes": 0,
+            "explicit_buffer_balance": 108,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              37.77301080457573,
+              23.718285331643656,
+              17.808590278793112
+            ],
+            "target": [
+              11.212603187941927,
+              5.126,
+              -8.75181733784069
+            ],
+            "near": 0.015402273408589521,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 1709,
+          "Nodes": 32766,
+          "JSHeapUsedSize": 11830568,
+          "JSHeapTotalSize": 12967936
+        }
+      },
+      "after": {
+        "metrics": {
+          "model_member_count": 3687,
+          "instanced_meshes": 18,
+          "timings": {
+            "build_ms": {
+              "samples": 3,
+              "minimum": 5.200000002980232,
+              "median": 7,
+              "p95": 8,
+              "maximum": 8
+            },
+            "selection_ms": {
+              "samples": 23,
+              "minimum": 0.30000000074505806,
+              "median": 2.199999999254942,
+              "p95": 3.599999997764826,
+              "maximum": 3.800000000745058
+            },
+            "ray_pick_ms": {
+              "samples": 20,
+              "minimum": 1.6000000014901161,
+              "median": 2.850000001490116,
+              "p95": 7.300000000745058,
+              "maximum": 9.699999999254942
+            },
+            "frame_interval_ms": {
+              "samples": 12,
+              "minimum": 155.5,
+              "median": 162.44999999925494,
+              "p95": 188.30000000074506,
+              "maximum": 188.30000000074506
+            },
+            "render_submit_ms": {
+              "samples": 13,
+              "minimum": 0.5,
+              "median": 0.5999999977648258,
+              "p95": 0.9000000022351742,
+              "maximum": 0.9000000022351742
+            }
+          },
+          "renderer": {
+            "geometries": 20,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 20,
+            "triangles": 44246,
+            "explicit_buffer_creates": 432,
+            "explicit_buffer_deletes": 324,
+            "explicit_buffer_balance": 108,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              37.77301080457573,
+              23.718285331643656,
+              17.808590278793112
+            ],
+            "target": [
+              11.212603187941927,
+              5.126,
+              -8.75181733784069
+            ],
+            "near": 0.015402273408589521,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 1709,
+          "Nodes": 33076,
+          "JSHeapUsedSize": 12284248,
+          "JSHeapTotalSize": 12967936
+        }
+      }
+    },
+    {
+      "id": "sample_3_storeys",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "loopback_transfer": [
+        {
+          "loopback_response_and_body_ms": 582.8521760000003,
+          "json_parse_ms": 11.276952000000165,
+          "body_bytes": 6098321
+        },
+        {
+          "loopback_response_and_body_ms": 535.0027989999944,
+          "json_parse_ms": 24.942823000004864,
+          "body_bytes": 6098321
+        },
+        {
+          "loopback_response_and_body_ms": 545.1335810000019,
+          "json_parse_ms": 13.675556999995024,
+          "body_bytes": 6098321
+        }
+      ],
+      "rebuild_count": 3,
+      "idle_frame_sample_ms": 2000,
+      "ray_pick_attempts": 20,
+      "ray_pick_hits": 20,
+      "before": {
+        "metrics": {
+          "model_member_count": 3687,
+          "instanced_meshes": 18,
+          "timings": {
+            "build_ms": {
+              "samples": 1,
+              "minimum": 9.100000001490116,
+              "median": 9.100000001490116,
+              "p95": 9.100000001490116,
+              "maximum": 9.100000001490116
+            },
+            "selection_ms": {
+              "samples": 1,
+              "minimum": 0.4000000022351742,
+              "median": 0.4000000022351742,
+              "p95": 0.4000000022351742,
+              "maximum": 0.4000000022351742
+            },
+            "ray_pick_ms": null,
+            "frame_interval_ms": {
+              "samples": 76,
+              "minimum": 15,
+              "median": 18.199999999254942,
+              "p95": 123.39999999850988,
+              "maximum": 238.40000000223517
+            },
+            "render_submit_ms": {
+              "samples": 77,
+              "minimum": 0.10000000149011612,
+              "median": 0.3999999985098839,
+              "p95": 1,
+              "maximum": 16.900000002235174
+            }
+          },
+          "renderer": {
+            "geometries": 20,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 20,
+            "triangles": 44246,
+            "explicit_buffer_creates": 108,
+            "explicit_buffer_deletes": 0,
+            "explicit_buffer_balance": 108,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              64.5022905344276,
+              42.42878114253998,
+              44.537870008644994
+            ],
+            "target": [
+              11.212603187941927,
+              5.126,
+              -8.75181733784069
+            ],
+            "near": 0.015402273408589521,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 1709,
+          "Nodes": 32766,
+          "JSHeapUsedSize": 12876736,
+          "JSHeapTotalSize": 13230080
+        }
+      },
+      "after": {
+        "metrics": {
+          "model_member_count": 3687,
+          "instanced_meshes": 18,
+          "timings": {
+            "build_ms": {
+              "samples": 3,
+              "minimum": 3.699999999254942,
+              "median": 5.399999998509884,
+              "p95": 7,
+              "maximum": 7
+            },
+            "selection_ms": {
+              "samples": 23,
+              "minimum": 0.29999999701976776,
+              "median": 1.8999999985098839,
+              "p95": 3.199999999254942,
+              "maximum": 4
+            },
+            "ray_pick_ms": {
+              "samples": 20,
+              "minimum": 1.3999999985098839,
+              "median": 2.599999999627471,
+              "p95": 7.399999998509884,
+              "maximum": 8.300000000745058
+            },
+            "frame_interval_ms": {
+              "samples": 23,
+              "minimum": 76.10000000149012,
+              "median": 84.20000000298023,
+              "p95": 93.90000000223517,
+              "maximum": 94.09999999776483
+            },
+            "render_submit_ms": {
+              "samples": 24,
+              "minimum": 0.3999999985098839,
+              "median": 0.5499999988824129,
+              "p95": 0.6000000014901161,
+              "maximum": 0.6999999992549419
+            }
+          },
+          "renderer": {
+            "geometries": 20,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 20,
+            "triangles": 44246,
+            "explicit_buffer_creates": 432,
+            "explicit_buffer_deletes": 324,
+            "explicit_buffer_balance": 108,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              64.5022905344276,
+              42.42878114253998,
+              44.537870008644994
+            ],
+            "target": [
+              11.212603187941927,
+              5.126,
+              -8.75181733784069
+            ],
+            "near": 0.015402273408589521,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 1709,
+          "Nodes": 33076,
+          "JSHeapUsedSize": 12279640,
+          "JSHeapTotalSize": 13230080
+        }
+      }
+    },
+    {
+      "id": "two_level",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "loopback_transfer": [
+        {
+          "loopback_response_and_body_ms": 36.22783399999025,
+          "json_parse_ms": 1.5817079999978887,
+          "body_bytes": 616585
+        },
+        {
+          "loopback_response_and_body_ms": 35.68507099999988,
+          "json_parse_ms": 1.6447270000062417,
+          "body_bytes": 616585
+        },
+        {
+          "loopback_response_and_body_ms": 36.82494900000165,
+          "json_parse_ms": 1.470924000008381,
+          "body_bytes": 616585
+        }
+      ],
+      "rebuild_count": 3,
+      "idle_frame_sample_ms": 2000,
+      "ray_pick_attempts": 20,
+      "ray_pick_hits": 20,
+      "before": {
+        "metrics": {
+          "model_member_count": 387,
+          "instanced_meshes": 10,
+          "timings": {
+            "build_ms": {
+              "samples": 1,
+              "minimum": 3.7000000029802322,
+              "median": 3.7000000029802322,
+              "p95": 3.7000000029802322,
+              "maximum": 3.7000000029802322
+            },
+            "selection_ms": {
+              "samples": 1,
+              "minimum": 0.30000000074505806,
+              "median": 0.30000000074505806,
+              "p95": 0.30000000074505806,
+              "maximum": 0.30000000074505806
+            },
+            "ray_pick_ms": null,
+            "frame_interval_ms": {
+              "samples": 9,
+              "minimum": 80.80000000074506,
+              "median": 92.19999999925494,
+              "p95": 239.69999999925494,
+              "maximum": 239.69999999925494
+            },
+            "render_submit_ms": {
+              "samples": 10,
+              "minimum": 0.5,
+              "median": 0.900000000372529,
+              "p95": 15.5,
+              "maximum": 15.5
+            }
+          },
+          "renderer": {
+            "geometries": 12,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 12,
+            "triangles": 4646,
+            "explicit_buffer_creates": 60,
+            "explicit_buffer_deletes": 0,
+            "explicit_buffer_balance": 60,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              16.29588562364532,
+              12.363436824522383,
+              8.79588562364532
+            ],
+            "target": [
+              4.5,
+              4.106316887970657,
+              -3
+            ],
+            "near": 0.01,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 380,
+          "Nodes": 6239,
+          "JSHeapUsedSize": 5399088,
+          "JSHeapTotalSize": 6414336
+        }
+      },
+      "after": {
+        "metrics": {
+          "model_member_count": 387,
+          "instanced_meshes": 10,
+          "timings": {
+            "build_ms": {
+              "samples": 3,
+              "minimum": 1.300000000745058,
+              "median": 1.6000000014901161,
+              "p95": 3,
+              "maximum": 3
+            },
+            "selection_ms": {
+              "samples": 23,
+              "minimum": 0.09999999776482582,
+              "median": 1.3999999985098839,
+              "p95": 2.300000000745058,
+              "maximum": 3.600000001490116
+            },
+            "ray_pick_ms": {
+              "samples": 20,
+              "minimum": 1,
+              "median": 1.699999999254942,
+              "p95": 5.199999999254942,
+              "maximum": 5.5
+            },
+            "frame_interval_ms": {
+              "samples": 23,
+              "minimum": 68.60000000149012,
+              "median": 84,
+              "p95": 92.10000000149012,
+              "maximum": 96.80000000074506
+            },
+            "render_submit_ms": {
+              "samples": 24,
+              "minimum": 0.30000000074505806,
+              "median": 0.5,
+              "p95": 1.199999999254942,
+              "maximum": 1.4000000022351742
+            }
+          },
+          "renderer": {
+            "geometries": 12,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 12,
+            "triangles": 4646,
+            "explicit_buffer_creates": 240,
+            "explicit_buffer_deletes": 180,
+            "explicit_buffer_balance": 60,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              16.29588562364532,
+              12.363436824522383,
+              8.79588562364532
+            ],
+            "target": [
+              4.5,
+              4.106316887970657,
+              -3
+            ],
+            "near": 0.01,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 380,
+          "Nodes": 6709,
+          "JSHeapUsedSize": 5802592,
+          "JSHeapTotalSize": 6676480
+        }
+      }
+    },
+    {
+      "id": "two_level",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "loopback_transfer": [
+        {
+          "loopback_response_and_body_ms": 36.22783399999025,
+          "json_parse_ms": 1.5817079999978887,
+          "body_bytes": 616585
+        },
+        {
+          "loopback_response_and_body_ms": 35.68507099999988,
+          "json_parse_ms": 1.6447270000062417,
+          "body_bytes": 616585
+        },
+        {
+          "loopback_response_and_body_ms": 36.82494900000165,
+          "json_parse_ms": 1.470924000008381,
+          "body_bytes": 616585
+        }
+      ],
+      "rebuild_count": 3,
+      "idle_frame_sample_ms": 2000,
+      "ray_pick_attempts": 20,
+      "ray_pick_hits": 20,
+      "before": {
+        "metrics": {
+          "model_member_count": 387,
+          "instanced_meshes": 10,
+          "timings": {
+            "build_ms": {
+              "samples": 1,
+              "minimum": 3.900000002235174,
+              "median": 3.900000002235174,
+              "p95": 3.900000002235174,
+              "maximum": 3.900000002235174
+            },
+            "selection_ms": {
+              "samples": 1,
+              "minimum": 0.30000000074505806,
+              "median": 0.30000000074505806,
+              "p95": 0.30000000074505806,
+              "maximum": 0.30000000074505806
+            },
+            "ray_pick_ms": null,
+            "frame_interval_ms": {
+              "samples": 9,
+              "minimum": 31.699999999254942,
+              "median": 42.100000001490116,
+              "p95": 147.69999999925494,
+              "maximum": 147.69999999925494
+            },
+            "render_submit_ms": {
+              "samples": 10,
+              "minimum": 0.5,
+              "median": 1,
+              "p95": 13.600000001490116,
+              "maximum": 13.600000001490116
+            }
+          },
+          "renderer": {
+            "geometries": 12,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 12,
+            "triangles": 4646,
+            "explicit_buffer_creates": 60,
+            "explicit_buffer_deletes": 0,
+            "explicit_buffer_balance": 60,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              28.166769950672588,
+              20.673055853441465,
+              20.66676995067259
+            ],
+            "target": [
+              4.5,
+              4.106316887970657,
+              -3
+            ],
+            "near": 0.01,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 380,
+          "Nodes": 6239,
+          "JSHeapUsedSize": 5399556,
+          "JSHeapTotalSize": 6414336
+        }
+      },
+      "after": {
+        "metrics": {
+          "model_member_count": 387,
+          "instanced_meshes": 10,
+          "timings": {
+            "build_ms": {
+              "samples": 3,
+              "minimum": 0.8999999985098839,
+              "median": 1.3999999985098839,
+              "p95": 3.100000001490116,
+              "maximum": 3.100000001490116
+            },
+            "selection_ms": {
+              "samples": 23,
+              "minimum": 0,
+              "median": 1.300000000745058,
+              "p95": 3.100000001490116,
+              "maximum": 4.600000001490116
+            },
+            "ray_pick_ms": {
+              "samples": 20,
+              "minimum": 1,
+              "median": 1.699999999254942,
+              "p95": 2.899999998509884,
+              "maximum": 5.100000001490116
+            },
+            "frame_interval_ms": {
+              "samples": 89,
+              "minimum": 18.699999999254942,
+              "median": 22.099999997764826,
+              "p95": 25.5,
+              "maximum": 28.300000000745058
+            },
+            "render_submit_ms": {
+              "samples": 90,
+              "minimum": 0.19999999925494194,
+              "median": 0.4000000022351742,
+              "p95": 0.6000000014901161,
+              "maximum": 0.6999999992549419
+            }
+          },
+          "renderer": {
+            "geometries": 12,
+            "textures": 1,
+            "programs": 4,
+            "draw_calls": 12,
+            "triangles": 4646,
+            "explicit_buffer_creates": 240,
+            "explicit_buffer_deletes": 180,
+            "explicit_buffer_balance": 60,
+            "adapter": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+          },
+          "camera": {
+            "position": [
+              28.166769950672588,
+              20.673055853441465,
+              20.66676995067259
+            ],
+            "target": [
+              4.5,
+              4.106316887970657,
+              -3
+            ],
+            "near": 0.01,
+            "far": 500,
+            "projection": "perspective",
+            "zoom": 1,
+            "up": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        "heap": {
+          "Documents": 1,
+          "JSEventListeners": 380,
+          "Nodes": 6709,
+          "JSHeapUsedSize": 5811580,
+          "JSHeapTotalSize": 6676480
+        }
+      }
+    }
+  ]
+}

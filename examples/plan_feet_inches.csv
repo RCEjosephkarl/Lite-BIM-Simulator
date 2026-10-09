@@ -1,0 +1,3 @@
+type,level,segment_id,label,start_x_mm,start_z_mm,end_x_mm,end_z_mm,height_mm,wall_segment_id,opening_id,opening_type,start_offset_mm,center_offset_mm,width_mm,sill_height_mm,head_height_mm,truss_id,span_mm,pitch_deg,spacing_mm,quantity,direction_deg,overhang_mm,heel_height_mm
+wall,1,FEET-W,Feet/inches wall,"-2' 6""",0,"9' 6""",0,"8' 4""",,,,,,,,,,,,,,,,
+opening,1,,,,,,,"3' 11""",FEET-W,FEET-O,window,4',,4',"2' 11""","6' 10""",,,,,,,,
