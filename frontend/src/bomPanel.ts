@@ -133,10 +133,20 @@ export class BomPanel {
     this.root.querySelector("#bom-summary")!.textContent = `${rows.length} of ${this.rows.length} rows · ${sum(r => r.physical_qty)} boards · ${unpriced} unpriced boards · priced cut subtotal US$${sum(r => r.total_cost_usd ?? 0).toFixed(2)} · priced stock subtotal US$${sum(r => r.stock_cost_usd ?? 0).toFixed(2)}` + (unknown ? ` · ${unknown} legacy cut identities unknown` : "");
     this.root.querySelector("#bom-table")!.innerHTML = `
       <thead><tr><th scope="col">Model</th>${visible.map(column => `<th scope="col">${column.title}</th>`).join("")}</tr></thead>
-      <tbody>${rows.map((row,index) => `<tr class="${row.estimate_complete ? "" : "unpriced"}"><td><button data-bom-locate="${index}" aria-label="Locate ${escapeHtml(row.element)} row ${index+1} in model">Locate in model</button></td>${visible.map(column => `<td>${escapeHtml(String(column.value(row)))}</td>`).join("")}</tr>`).join("")}</tbody>`;
-    this.root.querySelectorAll<HTMLButtonElement>("[data-bom-locate]").forEach(button=>button.onclick=()=>{
-      const dialog=this.root.querySelector<HTMLDialogElement>("dialog[open]");dialog?.close("navigate");
-      this.onLocate(rows[Number(button.dataset.bomLocate)].member_ids);
+      <tbody>${rows.map((row,index) => `<tr data-bom-row="${index}" class="${row.estimate_complete ? "" : "unpriced"}"><td><button data-bom-locate="${index}" aria-label="Locate ${escapeHtml(row.element)} row ${index+1} in model">Locate in model</button></td>${visible.map(column => `<td>${escapeHtml(String(column.value(row)))}</td>`).join("")}</tr>`).join("")}</tbody>`;
+    const locateRow = (index: number) => {
+      const dialog = this.root.querySelector<HTMLDialogElement>("dialog[open]");
+      dialog?.close("navigate");
+      this.onLocate(rows[index].member_ids);
+    };
+    this.root.querySelectorAll<HTMLButtonElement>("[data-bom-locate]").forEach(button => button.onclick = () => {
+      locateRow(Number(button.dataset.bomLocate));
+    });
+    this.root.querySelectorAll<HTMLTableRowElement>("#bom-table tbody tr[data-bom-row]").forEach(rowEl => {
+      rowEl.addEventListener("click", event => {
+        if ((event.target as HTMLElement).closest("button,a,input,select")) return;
+        locateRow(Number(rowEl.dataset.bomRow));
+      });
     });
   }
 }

@@ -18,6 +18,7 @@ export interface UiCallbacks {
   onSource(source: string): void;
   onAutoRotate(on: boolean): void;
   onExport(): void;
+  onReset(): void;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -197,6 +198,11 @@ export class Panel {
       <button id="export" class="export">Export BOM CSV - timber only</button>
       <p class="stats" id="stats"></p>
       <p class="hint" id="disclaimer"></p>
+      <section>
+        <h2>Default model</h2>
+        <button id="specs-reset" class="danger-button">Reset to default BIM model</button>
+        <p class="notice">Restores the 1-storey SG8 sample model, default Building Specs, catalogue prices, and default 3D view.</p>
+      </section>
     `;
     this.legendEl = this.q("#legend");
     this.infoEl = this.q("#info");
@@ -277,6 +283,7 @@ export class Panel {
     this.refreshStudControls();
 
     this.q("#export").addEventListener("click", () => this.cb.onExport());
+    this.q("#specs-reset").addEventListener("click", () => this.cb.onReset());
   }
 
   /** Current override target: '' for overall, storey "1".."3", or segment id. */

@@ -143,6 +143,12 @@ export class WorkspaceState {
     if (this.baseline) this.view = this.baseline;
     this.baseline = null;
   }
+  resetView(): void {
+    this.cancelPreview();
+    this.view = defaultView();
+    this.recoveryRaw = null;
+    this.persist();
+  }
   select(member: BimElement | null): void {
     this.patch({ selection: member && this.activeModel ? memberKey(member, this.activeModel.meta.project.revision) : null });
   }

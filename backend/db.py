@@ -194,6 +194,10 @@ def rebuild(
     cfg: ModelConfig, preserve_manual: bool = True,
     preserve_imports: bool = True,
     definition: home_definition.HomeDefinition | None = None,
+    *,
+    reset_overrides: bool = False,
+    reset_default_name: bool = False,
+    mutation_action: str = "regenerate",
 ) -> int:
     """Regenerate a definition atomically while optionally preserving additions."""
     cfg = cfg.normalised()
@@ -212,7 +216,7 @@ def rebuild(
     for item in generated:
         _prepare_element(item)
     ensure_schema()
-    with closing(connect()) as con, projects.mutation(con, "regenerate", asdict(cfg)) as apply:
+    with closing(connect()) as con, projects.mutation(con, mutation_action, asdict(cfg)) as apply:
         if not apply:
             return con.execute("SELECT COUNT(*) FROM elements").fetchone()[0]
         con.executemany(
@@ -234,6 +238,8 @@ def rebuild(
             con.execute("DELETE FROM elements")
             con.execute("DELETE FROM import_batches")
         con.execute("DELETE FROM source_definitions WHERE definition_id NOT IN (SELECT batch_id FROM import_batches)")
+        if reset_overrides:
+            con.execute("DELETE FROM model_meta WHERE key IN ('price_overrides', 'price_overrides_saved_at', 'import_provenance')")
         _insert_elements(con, generated)
         con.executemany("INSERT INTO model_meta(key, value) VALUES (?, ?) "
                         "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
@@ -250,6 +256,8 @@ def rebuild(
                                   else "mixed" if additions else "sample")
         if definition.template == "custom":
             state["name"] = definition.name
+        elif reset_default_name and state["project_id"] == "default":
+            state["name"] = "Sample home"
         projects.save_info(con, state)
         count = con.execute("SELECT COUNT(*) FROM elements").fetchone()[0]
     return count
@@ -625,8 +633,16 @@ def delete_batch(batch_id: str) -> int:
 
 
 def reset_project() -> dict:
-    cfg = current_config()
-    rebuild(cfg, preserve_manual=False, preserve_imports=False)
+    require_model()
+    cfg = ModelConfig()
+    rebuild(
+        cfg,
+        preserve_manual=False,
+        preserve_imports=False,
+        reset_overrides=True,
+        reset_default_name=True,
+        mutation_action="reset to default",
+    )
     return model_json(cfg)
 
 

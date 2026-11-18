@@ -1,5 +1,5 @@
 import "./styles.css";
-import { ApiError, currentProjectId, downloadBom, fetchModel, initializeProject, paramsToQuery, updateModel, subscribeApiState, StaleResponseError, invalidatePreviewProofs, getDefinitions, getImportBatches, isApiBusy } from "./api";
+import { ApiError, currentProjectId, downloadBom, fetchModel, initializeProject, paramsToQuery, resetProject, updateModel, subscribeApiState, StaleResponseError, invalidatePreviewProofs, getDefinitions, getImportBatches, isApiBusy } from "./api";
 import { BomPanel } from "./bomPanel";
 import { ImportsPanel } from "./imports";
 import { HomePanel } from "./homePanel";
@@ -42,6 +42,7 @@ workspaceTools.onIsolate = ids => {
   render();viewer.fit(workspace.view.standardView==="custom"?"iso":workspace.view.standardView);workspace.patch({camera:viewer.cameraState()});saveView();
 };
 workspaceTools.onCancel = cancelPreview;
+workspaceTools.onReset = () => { void resetToDefaultModel(); };
 workspaceTools.onRecoverView = () => {workspace.discardRecovery();syncWorkspaceControls();};
 workspaceTools.onDownloadViewRecovery = () => {
   if(workspace.recoveryRaw===null)return;
@@ -63,7 +64,7 @@ bomPanel.onLocate=ids=>{
   const wanted=new Set(ids);
   const members=workspace.model?.elements.filter(member=>wanted.has(member.id))??[];
   if(!members.length)return;
-  workspace.patch({source:"",level:null,section:null,layers:{...workspace.view.layers,
+  workspace.patch({mode:"material",source:"",level:null,section:null,layers:{...workspace.view.layers,
     ...Object.fromEntries(members.map(m=>[workspace.model!.types.find(t=>t.code===m.type_code)!.category,true]))}});
   workspace.isolate(members);render();viewer.selectElement(members[0].id);
   viewer.fit(workspace.view.standardView==="custom"?"iso":workspace.view.standardView);
@@ -100,6 +101,9 @@ const panel = new Panel(sidebar.getSection("specs"), {
   onExport() {
     downloadBom();
   },
+  onReset() {
+    void resetToDefaultModel();
+  },
 });
 
 panel.syncParams(params);
@@ -118,6 +122,7 @@ manualInputs.onModel = setModel;
 importsPanel.onPreview = showPreview;
 manualInputs.onPreview = showPreview;
 sidebar.onModel = setModel;
+sidebar.onReset = () => { void resetToDefaultModel(); };
 sidebar.onContextChange = cancelPreview;
 sidebar.onWarningSelect = id => { cancelPreview();revealMember(id); };
 viewer.onOrbitStart = () => { workspace.patch({standardView:"custom"});syncWorkspaceControls(); };
@@ -190,6 +195,7 @@ subscribeApiState(operation => {
   pricingPanel.setWorkspaceBusy(busy);
   sidebar.setWorkspaceBusy(busy);
   panel.setWorkspaceBusy(busy);
+  workspaceTools.setWorkspaceBusy(busy);
   requestStatus.textContent = operation ? `${operation}…` : "";
   viewport.querySelector<HTMLButtonElement>("#preview-cancel")!.hidden = operation !== "Preparing preview" && !workspace.preview;
 });
@@ -200,6 +206,10 @@ function showPreview(result: PreviewResult): void {
 }
 
 function setModel(model: BimModel): void {
+  applyModel(model, false);
+}
+
+function applyModel(model: BimModel, resetCamera: boolean): void {
   invalidatePreviewProofs();
   const previous=workspace.model;
   const wasPreview=Boolean(workspace.preview);
@@ -230,9 +240,38 @@ function setModel(model: BimModel): void {
   panel.syncParams(params);
   syncUrl(params);
   panel.setModel(model);
-  render(changed||wasPreview||!previous?.elements.length);
+  render(resetCamera||changed||wasPreview||!previous?.elements.length);
   void refreshDataPanels();
   void resumeAssembly();
+}
+
+async function resetToDefaultModel(): Promise<void> {
+  if (isApiBusy()) return;
+  if (!confirm("Reset to the default BIM model? This clears custom/imported assemblies, Building Specs changes, price overrides, and 3D view filters (your previous revision remains in Settings history)."))
+    return;
+  cancelPreview();
+  viewport.classList.add("loading");
+  try {
+    const model = await resetProject();
+    workspace.resetView();
+    const url = new URL(location.href);
+    url.searchParams.delete("edit_assembly");
+    history.replaceState(null, "", url.pathname + url.search);
+    editLoaded = "";
+    manualInputs.wall.loadProject();
+    manualInputs.truss.loadProject();
+    importsPanel.loadProject();
+    homePanel.loadProject();
+    applyModel(model, true);
+    sidebar.showProjectMessage(`Reset to default BIM model · revision ${model.meta.project.revision}`, "success");
+  } catch (error) {
+    if (error instanceof StaleResponseError) return;
+    const text = (error as Error).message;
+    viewport.dataset.error = text;
+    sidebar.showProjectMessage(text, "error");
+  } finally {
+    viewport.classList.remove("loading");
+  }
 }
 
 function render(restoreCamera=false): void {

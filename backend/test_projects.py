@@ -320,3 +320,46 @@ def test_corrupt_identity_is_reported_without_regeneration():
     assert client.get("/api/model").status_code == 503
     assert client.post("/api/project/initialize").status_code == 503
     assert db.DB_PATH.read_bytes() == before
+
+
+def test_reset_restores_default_model_config_prices_and_retains_undo_revision():
+    default_initial = client.post("/api/project/initialize").json()
+    example = client.get("/api/project/home/examples").json()["examples"][0]["definition"]
+    proof = client.post("/api/project/home/preview", json=example).json()
+    custom_default = client.request("PUT", "/api/project/home/commit", json=example,
+                                    headers=headers(default_initial, proof, "custom-default")).json()
+    assert custom_default["meta"]["project"]["name"] == example["name"]
+    reset_default = client.post("/api/project/reset", json={},
+                                headers=headers(custom_default, key="reset-default")).json()
+    assert reset_default["meta"]["project"]["name"] == "Sample home"
+    assert reset_default["meta"]["project"]["geometry_mode"] == "sample"
+    assert reset_default["elements"] == default_initial["elements"]
+
+    sample = home("Reset target", "sample")
+    modified = client.post(
+        "/api/model",
+        params={**scope(sample), "storeys": 2, "roof": "hip", "stud_material_overall": "hyspan", "wall_treatment": "H3.2"},
+        json={}, headers=headers(sample, key="modify-specs"),
+    ).json()
+    added, _ = commit_wall(modified)
+    priced = client.post("/api/pricing/overrides", params=scope(added["model"]), json={"overrides": {"sg8": 99.0}},
+                         headers=headers(added["model"], key="override-price")).json()
+    assert client.post("/api/project/reset", params=scope(priced), json={}, headers={"If-Match": "0"}).status_code == 409
+
+    reset = client.post("/api/project/reset", params=scope(priced), json={},
+                        headers=headers(priced, key="reset-named")).json()
+    assert reset["meta"]["project"]["name"] == "Reset target"
+    assert reset["meta"]["project"]["geometry_mode"] == "sample"
+    assert reset["meta"]["params"] == sample["meta"]["params"]
+    assert reset["elements"] == sample["elements"]
+    assert client.get("/api/project/definitions", params=scope(reset)).json()["definitions"] == []
+    assert client.get("/api/import/batches", params=scope(reset)).json()["batches"] == []
+    assert client.get("/api/pricing", params=scope(reset)).json()["overrides"] == {}
+
+    revisions = client.get("/api/project/revisions", params=scope(reset)).json()["revisions"]
+    assert revisions[0]["action"] == "reset to default"
+    restored = client.post(f"/api/project/revisions/{priced['meta']['project']['revision']}/restore",
+                           params=scope(reset), json={}, headers=headers(reset, key="undo-reset")).json()
+    assert restored["elements"] == priced["elements"]
+    assert restored["meta"]["params"] == priced["meta"]["params"]
+    assert client.get("/api/pricing", params=scope(restored)).json()["overrides"] == {"sg8": 99.0}

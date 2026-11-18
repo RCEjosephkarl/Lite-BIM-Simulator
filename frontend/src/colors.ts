@@ -16,6 +16,17 @@ const MATERIAL_COLORS: Record<string, string> = {
   concrete: "#9ca3af",
 };
 
+const MATERIAL_COLOR_LOOKUP = new Map(
+  Object.entries(MATERIAL_COLORS).map(([key, hex]) => [key.trim().toLowerCase(), hex]),
+);
+
+const TREATMENT_SHIFTS: Record<string, [number, number, number]> = {
+  "H3.1": [0.04, 0.03, -0.03],
+  "H3.2": [0.08, 0.05, -0.06],
+  "H4": [0.10, 0.08, -0.10],
+  "H5": [0.12, 0.10, -0.14],
+};
+
 const REALISTIC_TIMBER = new THREE.Color("#c89f68");
 const REALISTIC_CONCRETE = new THREE.Color("#a3a7ad");
 
@@ -30,8 +41,12 @@ export function elementColor(
     return new THREE.Color(type.color_hex);
   }
   if (mode === "material") {
-    const c = new THREE.Color(MATERIAL_COLORS[el.material] ?? "#d4d4d8");
-    if (el.treatment === "H3.2") c.offsetHSL(0.08, 0.05, -0.06); // green shift
+    const hex = MATERIAL_COLOR_LOOKUP.get((el.material ?? "").trim().toLowerCase())
+      ?? MATERIAL_COLOR_LOOKUP.get((el.grade ?? "").trim().toLowerCase())
+      ?? (type.category === "concrete" ? MATERIAL_COLORS.concrete : "#d4d4d8");
+    const c = new THREE.Color(hex);
+    const shift = TREATMENT_SHIFTS[(el.treatment ?? "").trim().toUpperCase()];
+    if (shift && type.category !== "concrete") c.offsetHSL(...shift);
     return c;
   }
   // realistic: timber tones with slight per-piece variation
@@ -53,6 +68,7 @@ export const MATERIAL_LEGEND = [
   { label: "HyCHORD (LVL)", hex: MATERIAL_COLORS.HyCHORD },
   { label: "HySPAN (LVL)", hex: MATERIAL_COLORS.HySPAN },
   { label: "Hy90 (LVL)", hex: MATERIAL_COLORS.Hy90 },
-  { label: "H3.2 treated (green shift)", hex: "#5ea36b" },
+  { label: "H3.1–H5 treated (green shift)", hex: "#5ea36b" },
+  { label: "Other / custom material", hex: "#d4d4d8" },
   { label: "Concrete (not in BOM)", hex: MATERIAL_COLORS.concrete },
 ];

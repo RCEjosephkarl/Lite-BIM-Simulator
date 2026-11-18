@@ -1,4 +1,4 @@
-import { createProject, currentProjectId, currentProjectRevision, fetchModel, getProjects, getRevisions, getWarnings, regenerateProject, resetProject, restoreRevision, setProjectContext, StaleResponseError } from "./api";
+import { createProject, currentProjectId, currentProjectRevision, fetchModel, getProjects, getRevisions, getWarnings, regenerateProject, restoreRevision, setProjectContext, StaleResponseError } from "./api";
 import { escapeHtml, message, storage } from "./dom";
 import type { BimModel, SidebarSection } from "./types";
 
@@ -27,6 +27,7 @@ export class Sidebar {
   onContextChange: () => void = () => {};
   onWarningSelect: (id: number) => void = () => {};
   onPanelOpen: () => void = () => {};
+  onReset: () => void = () => {};
 
   constructor(private root: HTMLElement) {
     const section = new URLSearchParams(location.search).get("section");
@@ -98,17 +99,13 @@ export class Sidebar {
       <div id="rule-review" class="message-list"></div>
       <button id="regenerate-model" class="primary-button">Regenerate model</button>
       <p class="notice">Regeneration preserves imports and manual additions.</p>
-      <button id="reset-app" class="danger-button">Reset app state</button>`);
+      <button id="reset-app" class="danger-button">Reset to default BIM model</button>`);
     this.getSection("settings").querySelector("#regenerate-model")!
       .addEventListener("click", async () => {
         await this.command(() => regenerateProject(true, true));
       });
     this.getSection("settings").querySelector("#reset-app")!.addEventListener(
-      "click", async () => {
-        if (!confirm("Clear all imported/manual elements and restore the sample model?"))
-          return;
-        await this.command(() => resetProject());
-      });
+      "click", () => this.onReset());
     this.root.querySelector("#project-select")!.addEventListener("change", async () => {
       const previous = currentProjectId();
       const previousRevision = currentProjectRevision();
@@ -142,6 +139,10 @@ export class Sidebar {
     finally { this.pending = false; this.updatePending(); }
   }
 
+  showProjectMessage(text: string, kind: "success" | "error" | "notice" | "warning" = "success"): void {
+    message(this.root.querySelector("#project-feedback")!, text, kind);
+  }
+
   async refreshProjects(model: BimModel): Promise<void> {
     try {
       const [homes, history] = await Promise.all([getProjects(), getRevisions()]);
@@ -151,7 +152,7 @@ export class Sidebar {
         `${model.meta.project.geometry_mode} geometry · revision ${model.meta.project.revision}`;
       this.root.querySelector("#project-revision")!.innerHTML = '<option value="">Select a revision</option>' + history.revisions.map(item =>
         `<option value="${item.revision}">${item.revision} · ${escapeHtml(item.action)}</option>`).join("");
-      this.root.querySelector<HTMLButtonElement>("#reset-app")!.textContent = `Restore sample (${model.elements.length} current members)`;
+      this.root.querySelector<HTMLButtonElement>("#reset-app")!.textContent = `Reset to default BIM model (${model.elements.length} current members)`;
       this.updatePending();
     } catch (error) {
       if (error instanceof StaleResponseError) return;

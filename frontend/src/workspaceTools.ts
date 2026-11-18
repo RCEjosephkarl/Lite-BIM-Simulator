@@ -18,11 +18,16 @@ export class WorkspaceTools {
   onFitSelection: () => void = () => {};
   onBom: (id:number) => void = () => {};
   onCameraAction: (action:CameraAction) => void = () => {};
+  onReset: () => void = () => {};
   private groups:AssemblyGroup[]=[];
   private treeLimit=250;
   private expanded=new Map<string,boolean>();
   private view: ViewPreferences | null = null;
   private recoveryStatus: string | undefined;
+
+  setWorkspaceBusy(busy: boolean): void {
+    this.root.querySelector<HTMLButtonElement>("#workspace-reset")!.disabled = busy;
+  }
 
   constructor(private root: HTMLElement) {
     root.insertAdjacentHTML("beforeend", `
@@ -34,6 +39,7 @@ export class WorkspaceTools {
           <button id="model-browser-toggle" aria-expanded="false" aria-controls="model-browser">Model browser</button>
           <button data-view="iso" title="Fit the whole model">Fit model</button>
           <button data-view="top">Plan</button><button data-view="front">Front</button><button data-view="side">Side</button>
+          <button id="workspace-reset" title="Reset geometry, specs, pricing overrides, and view to the default BIM model">Reset to default BIM model</button>
           <button id="preview-cancel" hidden>Cancel preview</button>
         </div>
         <details id="view-options"><summary>Filters, dimensions and section</summary>
@@ -94,6 +100,7 @@ export class WorkspaceTools {
     position.addEventListener("change",section);keep.addEventListener("change",section);
     root.querySelectorAll<HTMLElement>("[data-view]").forEach(button =>
       button.addEventListener("click", () => this.onView(button.dataset.view as "iso" | "top" | "front" | "side")));
+    root.querySelector("#workspace-reset")!.addEventListener("click", () => this.onReset());
     root.querySelector("#preview-cancel")!.addEventListener("click", () => this.onCancel());
     root.querySelector("#model-browser-toggle")!.addEventListener("click", () => {
       const browser = root.querySelector<HTMLElement>("#model-browser")!;

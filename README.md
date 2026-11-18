@@ -271,7 +271,11 @@ Open **Settings / Warnings** to create or select a saved home and restore a prio
 revision. New custom homes start empty; sample homes retain the existing sample
 controls. Changing exposure or roof settings on custom geometry does not insert
 sample walls. Regenerate on a custom home asks you to edit its assemblies; the
-explicit **Restore sample** command can replace it after confirmation.
+explicit **Reset to default BIM model** command (available in the 3D workspace
+toolbar, **Building Specs**, and **Settings / Warnings**) replaces the active
+home's geometry, Building Specs, pricing overrides, and view filters with the
+default 1-storey SG8 sample after confirmation (retaining the prior revision in
+history).
 
 The original database is project `default`. Named homes have validated UUIDs and
 live in `<TIMBERBIM_DB_PATH>.projects/<project_id>.db`, beside the default database.

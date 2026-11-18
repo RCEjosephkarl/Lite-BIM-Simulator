@@ -38,7 +38,27 @@ export async function checkRendering(browser,url,projectId,errors){
     assert.notDeepEqual(await canvas.screenshot(),colorBefore,'material colors repaint');
     await repaint(()=>page.getByRole('button',{name:'Model browser',exact:true}).click().then(()=>page.locator('.model-tree-item').first().click()));
     assert.ok(await page.locator('#member-inspector').isVisible());
+    assert.ok((await page.evaluate(()=>window.timberbimDiagnostics.selectionOutlines()))>0,'selection uses edge outlines');
     await repaint(()=>page.locator('#selection-clear').click());
+    assert.equal(await page.evaluate(()=>window.timberbimDiagnostics.selectionOutlines()),0);
+    await repaint(()=>page.locator('#mode [data-m="function"]').click());
+    await page.getByRole('button',{name:'BOM',exact:true}).click();
+    await page.locator('#bom-summary').filter({hasText:'boards'}).waitFor();
+    const firstRowId=await page.evaluate(async({url,projectId})=>{
+      const bom=await (await fetch(`${url}/api/bom.json?project_id=${projectId}`)).json();
+      bom.rows.sort((a,b)=>a.element.localeCompare(b.element));
+      return {id:bom.rows[0].member_ids[0],material:bom.rows[0].material};
+    },{url,projectId});
+    await repaint(()=>page.locator('#bom-table tbody tr[data-bom-row]').first().locator('td').nth(1).click());
+    assert.equal(await page.locator('#mode [data-m="material"]').getAttribute('aria-pressed'),'true');
+    assert.ok((await page.evaluate(()=>window.timberbimDiagnostics.selectionOutlines()))>0);
+    const renderedHex=await page.evaluate(id=>window.timberbimDiagnostics.memberColor(id),firstRowId.id);
+    assert.ok(renderedHex&&renderedHex!=='#ffffff'&&renderedHex!=='#ffe08a',`BOM selection keeps material color (${renderedHex})`);
+    assert.equal(renderedHex,'#e3c16f','SG8 member renders exact SG8 material color');
+    await repaint(()=>page.locator('#selection-show-all').click());
+    await repaint(()=>page.locator('#selection-clear').click());
+    await page.getByRole('button',{name:'Pin sidebar',exact:true}).click();
+    await page.getByRole('button',{name:'Building Specs',exact:true}).click();await settle();
     const position=(await snapshot()).camera.position;
     const count=(await snapshot()).renderer.render_count;
     await page.locator('#autorotate').check();

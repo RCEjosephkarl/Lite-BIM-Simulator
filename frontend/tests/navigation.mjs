@@ -75,6 +75,11 @@ export async function checkNavigation(browser,url,errors){
     await page.waitForFunction(({id,count})=>JSON.parse(localStorage.getItem(`timberbim.view.v1.${id}`)).view.isolation?.length===count,
       {id:projectId,count:expected.rows[0].member_ids.length});
     await page.locator('#selection-show-all').click();
+    await page.getByRole('button',{name:'BOM',exact:true}).click();
+    await page.locator('#bom-table tbody tr[data-bom-row]').first().locator('td').nth(1).click();
+    assert.equal(await page.locator('#mode [data-m="material"]').getAttribute('aria-pressed'),'true');
+    assert.ok(await canvas.evaluate(el=>document.activeElement===el));
+    await page.locator('#selection-show-all').click();
     // Scope racing in the same revision: a delayed assembly response cannot replace Whole home.
     let release;const held=new Promise(resolve=>release=resolve);let reached;
     releasePending=release;

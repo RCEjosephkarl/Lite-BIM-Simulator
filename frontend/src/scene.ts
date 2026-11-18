@@ -22,8 +22,8 @@ interface TypeMesh {
   elements: BimElement[]; // index = instanceId
 }
 
-const CLICKED_COLOR = new THREE.Color("#ffffff");
-const GROUP_COLOR = new THREE.Color("#ffe08a"); // rest of the wall/truss
+const SELECTION_PRIMARY_HEX = 0xffffff;
+const SELECTION_GROUP_HEX = 0xffe08a; // rest of the wall/truss
 
 export class Viewer {
   readonly scene = new THREE.Scene();
@@ -37,7 +37,14 @@ export class Viewer {
 
   private typeMeshes = new Map<string, TypeMesh>();
   private modelGroup = new THREE.Group();
-  private mode: ColorMode = "function";
+  private selectionGroup = new THREE.Group();
+  private selectionEdgeGeometry: THREE.EdgesGeometry;
+  private primaryOutlineMaterial = new THREE.LineBasicMaterial({
+    color: SELECTION_PRIMARY_HEX, depthTest: false, transparent: true, opacity: 0.95,
+  });
+  private groupOutlineMaterial = new THREE.LineBasicMaterial({
+    color: SELECTION_GROUP_HEX, depthTest: true, transparent: true, opacity: 0.85,
+  });
   // highlighted instances; first entry is the clicked member
   private selected: { tm: TypeMesh; id: number }[] = [];
   private raycaster = new THREE.Raycaster();
@@ -95,7 +102,19 @@ export class Viewer {
     this.addLightsAndGround();
     this.scene.add(this.modelGroup);
     this.modelGroup.name="diagnostic-model";
+    const unitBox = new THREE.BoxGeometry(1, 1, 1);
+    this.selectionEdgeGeometry = new THREE.EdgesGeometry(unitBox);
+    unitBox.dispose();
+    this.selectionGroup.name = "selection-outline";
+    this.scene.add(this.selectionGroup);
     this.scene.add(this.dimensionGroup);
+    // Pre-upload the shared outline buffer and shader so selecting members creates zero GPU buffers later.
+    const warmOutline = new THREE.LineSegments(this.selectionEdgeGeometry, this.primaryOutlineMaterial);
+    warmOutline.scale.set(0, 0, 0);
+    warmOutline.frustumCulled = false;
+    this.scene.add(warmOutline);
+    this.renderer.render(this.scene, this.camera);
+    this.scene.remove(warmOutline);
 
     const resize = () => {
       if (!container.clientWidth || !container.clientHeight) return;
@@ -173,6 +192,10 @@ export class Viewer {
       const material=mesh.material as THREE.MeshStandardMaterial;
       material.clippingPlanes=plane?[plane]:[];material.clipShadows=true;material.needsUpdate=true;
     });
+    for (const outlineMaterial of [this.primaryOutlineMaterial, this.groupOutlineMaterial]) {
+      outlineMaterial.clippingPlanes = plane ? [plane] : [];
+      outlineMaterial.needsUpdate = true;
+    }
     this.requestRender();
   }
 
@@ -202,8 +225,8 @@ export class Viewer {
   }
 
   buildModel(model: BimModel, mode: ColorMode): void {
-    this.mode = mode;
     this.selected = [];
+    this.selectionGroup.clear();
     this.modelGroup.clear();
     this.typeMeshes.forEach((tm) => {
       tm.mesh.dispose();
@@ -244,6 +267,7 @@ export class Viewer {
         mesh.setColorAt(i, elementColor(el, type, mode));
       });
       mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
       this.modelGroup.add(mesh);
       this.typeMeshes.set(type.code, { mesh, type, elements: els });
     }
@@ -296,11 +320,10 @@ export class Viewer {
   }
 
   setColorMode(mode: ColorMode): void {
-    this.mode = mode;
     this.typeMeshes.forEach(({ mesh, type, elements }) => {
       elements.forEach((el, i) =>
         mesh.setColorAt(i, elementColor(el, type, mode)));
-      mesh.instanceColor!.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     });
     this.reapplyHighlight();
     this.requestRender();
@@ -438,24 +461,41 @@ export class Viewer {
     this.updateDimensions();
   }
 
-  private clearHighlight(): void {
-    const touched = new Set<THREE.InstancedMesh>();
-    for (const { tm, id } of this.selected) {
-      tm.mesh.setColorAt(id, elementColor(tm.elements[id], tm.type, this.mode));
-      touched.add(tm.mesh);
+  displayedColorHex(elementId: number): string | null {
+    const color = new THREE.Color();
+    for (const tm of this.typeMeshes.values()) {
+      const index = tm.elements.findIndex(element => element.id === elementId);
+      if (index >= 0) {
+        tm.mesh.getColorAt(index, color);
+        return `#${color.getHexString()}`;
+      }
     }
-    touched.forEach((mesh) => mesh.instanceColor!.needsUpdate = true);
+    return null;
+  }
+
+  private clearHighlight(): void {
+    this.selectionGroup.clear();
     this.selected = [];
     this.requestRender();
   }
 
   private reapplyHighlight(): void {
-    const touched = new Set<THREE.InstancedMesh>();
+    this.selectionGroup.clear();
+    const pos = new THREE.Vector3();
+    const pad = 0.004;
     this.selected.forEach(({ tm, id }, index) => {
-      tm.mesh.setColorAt(id, index === 0 ? CLICKED_COLOR : GROUP_COLOR);
-      touched.add(tm.mesh);
+      const el = tm.elements[id];
+      toScene(el, pos);
+      const outline = new THREE.LineSegments(
+        this.selectionEdgeGeometry,
+        index === 0 ? this.primaryOutlineMaterial : this.groupOutlineMaterial,
+      );
+      outline.position.copy(pos);
+      outline.rotation.set(0, el.yaw, el.pitch, "YZX");
+      outline.scale.set(el.length_mm * MM + pad, el.h_mm * MM + pad, el.w_mm * MM + pad);
+      outline.renderOrder = index === 0 ? 6 : 5;
+      this.selectionGroup.add(outline);
     });
-    touched.forEach((mesh) => mesh.instanceColor!.needsUpdate = true);
     this.requestRender();
   }
 }

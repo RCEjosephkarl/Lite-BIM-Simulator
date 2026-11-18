@@ -33,6 +33,8 @@ export function installDiagnostics(viewer:Viewer,getModel:()=>BimModel|null,rebu
     rebuild,
     rotate(on:boolean){viewer.setAutoRotate(on);},
     select(id:number){return viewer.selectElement(id);},
+    memberColor(id:number){return viewer.displayedColorHex(id);},
+    selectionOutlines(){return viewer.scene.getObjectByName("selection-outline")?.children.length??0;},
     rayPick(id:number){
       const member=getModel()?.elements.find(member=>member.id===id);
       if(!member)throw new Error("Diagnostic member is missing from the displayed model");
