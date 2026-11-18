@@ -1,6 +1,6 @@
 # Wall and truss implementation handover
 
-This describes the current v2.17 generators, their physical identities and the
+This describes the current v2.18 generators, their physical identities and the
 unresolved fabrication/support work. Start in **Manual Wall Frame Input** for
 panel/opening problems, **Manual Truss Input** for graph/section problems, and
 **Imports / Drawing Plans** for an automatic reusable-home layout. Settings /

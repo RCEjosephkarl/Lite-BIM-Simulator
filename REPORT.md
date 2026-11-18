@@ -1,5 +1,50 @@
 # TimberBIM Lite — Feature Update Report
 
+## Selection outlines, BOM locating, and default reset — v2.18.0 (2026-11-18)
+
+Selecting members or assemblies previously overwrote `InstancedMesh` instance
+colours (`CLICKED_COLOR` / `GROUP_COLOR`), which hid Function, Material, and
+Realistic colours whenever an assembly or BOM row was highlighted. `Viewer`
+(`frontend/src/scene.ts`) now draws 3D edge outlines (`THREE.EdgesGeometry` +
+`THREE.LineSegments` in `selection-outline` — white `0xffffff` on the clicked
+primary member and warm yellow `0xffe08a` on the rest of the assembly) with a
+pre-warmed shared geometry buffer and section-clipping support, keeping
+underlying member colours intact.
+
+In `frontend/src/bomPanel.ts` and `frontend/src/main.ts`, clicking anywhere on a
+BOM row (as well as **Locate in model**) isolates its exact saved `member_ids`,
+switches the viewer to **Material** colour mode, frames the geometry, and
+focuses the 3D canvas. `frontend/src/colors.ts` now performs case-insensitive
+material and grade lookups, applies distinct green HSL shifts across
+`H3.1–H5` treatments (instead of `H3.2` only), and adds an `Other / custom
+material` legend entry.
+
+The default-reset workflow was unified as **Reset to default BIM model** across
+the 3D workspace toolbar (`#workspace-reset`), **Building Specs** (`#specs-reset`),
+and **Settings / Warnings** (`#reset-app`). `backend/db.py::reset_project()`
+restores the default `ModelConfig` (1-storey SG8 gable), clears saved
+`price_overrides`, `price_overrides_saved_at`, and `import_provenance`, restores
+`"Sample home"` on the `default` project, and records `"reset to default"` in
+revision history for undo. On the frontend, `resetToDefaultModel()` resets
+home-local view preferences (`WorkspaceState.resetView()`), removes
+`edit_assembly` from the URL, reloads form/import panels, and refits the camera.
+
+Verification and publishing documentation:
+- Backend suite: **225 tests** (adding
+  `test_reset_restores_default_model_config_prices_and_retains_undo_revision` in
+  `backend/test_projects.py`, verifying default/named reset, cleared overrides,
+  and revision undo).
+- Frontend TypeScript/Vite build, Node contracts (`viewState.mjs` reset-view
+  coverage), and Chromium checks (`navigation.mjs`, `rendering.mjs`,
+  `workspace.mjs`) verify edge-outline selection, exact `SG8` `#e3c16f` colour
+  preservation during BOM row selection, and full default-model reset across all
+  three UI entry points.
+- Release metadata coordinated at **2.18.0** (`VERSION`, `frontend/package.json`,
+  `frontend/package-lock.json`), with [CHANGELOG.md](CHANGELOG.md) added and
+  `README.md`, `REPORT.md`, `improvement_plan.md`, `backend/FRAMING.md`,
+  `backend/API.md`, and `benchmarks/README.md` updated for the publishing release.
+  SQLite schema 5, rule profile 2, and draft schema 2 remain unchanged.
+
 ## Numerical and resource contracts — v2.17.0 (2026-10-09)
 
 Finite input coordinates could previously overflow during wall-length calculation,

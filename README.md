@@ -14,7 +14,7 @@ and covered porch).
 |---|---|---|
 | 1 | 3D rendered view | Three.js `InstancedMesh` per element function (~1,100–3,600 members) |
 | 2 | Rotate / pan / zoom + **auto-rotate** | `OrbitControls` — left-drag orbit, right-drag pan, wheel zoom; *View → Auto-rotate model* toggles a slow turntable |
-| 3 | Colour / material / function variation | 3 colour modes: **Function** (stud/plate/nog/lintel/joist/rafter…), **Material** (SG8 H1.2 vs H3.2 vs concrete), **Realistic** timber tones; per-category layer toggles; click any member for its properties |
+| 3 | Colour / material / function variation | 3 colour modes: **Function** (stud/plate/nog/lintel/joist/rafter…), **Material** (SG8/SG10/Glulam/LVL, `H3.1–H5` treatment green shifts, custom-material fallback, concrete), **Realistic** timber tones; per-category layer toggles; click any member for its properties |
 | 4 | NZS 3604:2011 | Python rules engine (`backend/nzs3604.py`): stud spacing (Table 8.2), plates/nogs (cl. 8.5.2), lintels by span (Table 8.9), floor joists (Table 7.1), ceiling joists (Table 10.3), rafters (Table 10.1), treatments (NZS 3640). Every element stores its clause reference |
 | 5 | CSV bill of materials | **Timber only** (concrete slabs excluded), aggregated by a SQL view (`bom`) with stock lengths rounded to 0.3 m increments → `GET /api/bom.csv` |
 | 6 | Sample shape | Footprint, walls and openings digitized from the reference floor plan (`backend/geometry.py`) |
@@ -29,7 +29,7 @@ and covered porch).
 | 15 | **Hover / pin sidebar** | Left icon rail expands on hover and can be pinned. Sections cover Building Specs, BOM, Pricing, Imports, Manual Walls, Manual Trusses, and Settings / Warnings |
 | 16 | **Structured CSV plan import** | Mixed wall/opening/truss rows, mm/metres/feet-inches normalization, editable validation review, temporary preview, then append/replace commit |
 | 17 | **Manual framing inputs** | Preview-before-commit wall and truss forms, openings, repeated/custom trusses, local drafts, cost/member summaries, and source tracking |
-| 18 | **Whole-frame selection** | One click on any member selects its entire wall-frame segment or truss (group tinted, clicked member white) and shows aggregate metadata: stud spacing, timber sizes, openings, plies, treatment, member count and estimated cost |
+| 18 | **Whole-frame selection** | One click on any member selects its entire wall-frame segment or truss using 3D edge outlines (white outline on clicked member, warm yellow outline on the rest of the assembly) while preserving active Function/Material/Realistic colours, and shows aggregate metadata: stud spacing, timber sizes, openings, plies, treatment, member count and estimated cost |
 | 19 | **Selectable treatments** | NZS 3640 hazard classes H1.2 / H3.1 / H3.2 / H4 / H5 as a building-level wall override (`wall_treatment`) and per manual wall/truss input |
 | 20 | **6 m × 3 m wall envelope** | Single manual frames retain 6 m × 3 m (orientation interchangeable); logical runs can be split into panels with paired end studs and unchecked connections |
 | 21 | **Glulam grade catalogue** | GL8 / GL10 / GL12 estimating entries alongside SG8, SG10, Prolam, generic Glulam, HyCHORD, HySPAN and Hy90 |
@@ -77,7 +77,7 @@ The sidebar is collapsed by default. Hover the left rail to open it, or use
 also includes an element source filter for generated, imported, manual, and
 temporary preview members.
 
-Release **2.17.0** validates derived geometry before generation, bounds CSV
+Release **2.18.0** replaces instance-colour selection tinting with clipping-aware 3D edge outlines so Function, Material, and Realistic member colours stay visible while selected. Clicking any BOM table row (as well as **Locate in model**) isolates its saved member IDs and switches to **Material** colour mode, which now applies treatment green shifts across `H3.1–H5` and case-insensitive material/grade fallback. **Reset to default BIM model** is unified across the 3D workspace toolbar, **Building Specs**, and **Settings / Warnings** to restore default 1-storey SG8 settings, clear pricing overrides and local view filters, and retain an undoable revision; release notes are tracked in [CHANGELOG.md](CHANGELOG.md). Release **2.17.0** validates derived geometry before generation, bounds CSV
 reading before row allocation, and preserves field locations for non-finite
 JSON errors. Floor polygon/rotation calculations use a local origin, preserving
 ordinary geometry when a home is translated. Split/porch preflight and coordinate
@@ -595,8 +595,7 @@ includes hidden or clipped members of that assembly. Connected chord segments
 still count as one physical cut. **Show whole-home BOM** clears the scope; changing
 home/revision also clears it. Temporary members must be saved before opening their BOM.
 
-Each row’s **Locate in model** isolates its exact saved member IDs, frames their
-geometry and focuses the canvas; the table dialog/mobile sheet closes. Use
+Clicking any BOM table row or its **Locate in model** button isolates its exact saved member IDs, switches the viewer to **Material** colour mode (keeping material and `H3.1–H5` treatment colours visible inside the edge-outline selection), frames their geometry and focuses the canvas; the table dialog/mobile sheet closes. Use
 **Show all** in the inspector to release the isolation. A whole-home row may
 contain cuts from several assemblies. The inspector describes the first selected
 assembly within that visible row, while the camera frames the entire row.

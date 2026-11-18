@@ -26,7 +26,10 @@ If-Match/preview headers. Browser writes and named projects use the strict path.
 Removing that compatibility is a separate owner decision. Mutation transactions
 preserve the previous model, metadata, source definitions and revision on failure.
 The most recent 20 prior revisions support bounded Undo; external SQLite-aware
-backups remain separate. Preview geometry is temporary and cannot be addressed as
+backups remain separate. `POST /api/project/reset` restores default `ModelConfig`,
+clears saved pricing overrides and import provenance (and restores `"Sample home"`
+on the `default` project), and records an undoable `"reset to default"` revision.
+Preview geometry is temporary and cannot be addressed as
 a saved BOM anchor. Retry transport/server failure with the unchanged input/proof/
 key; resolve a 409 and preview again rather than retrying a stale write blindly.
 

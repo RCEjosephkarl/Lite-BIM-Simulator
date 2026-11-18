@@ -109,7 +109,8 @@ than comparing separate end-to-end timing runs.
 [before-numerical-backend-read.json](before-numerical-backend-read.json) retain the
 v2.16 captures before the derived numerical/preflight contracts. The v2.17
 reference preserves all five fixture member counts and the same rendering
-protocol. Timing changes between these independent runs are observations, not
+protocol. `v2.18.0` did not alter backend framing/read paths or benchmark fixtures,
+so the retained v2.17 captures remain the latest reference baselines. Timing changes between these independent runs are observations, not
 a paired claim of faster/slower reads. Current source fingerprints identify the
 measured runtime; the v2.16 UI screenshot artifact retains its original version,
 while fresh v2.17 full Chromium verification reran all seven-page checks.
